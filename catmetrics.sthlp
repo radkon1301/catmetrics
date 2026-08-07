@@ -354,8 +354,6 @@ Diagnostic measures for probabilistic forecasts:
 {pstd}
 For the option {opt metrics:(string)}, the numeric indices should be used.
 The table below lists all 283 available metrics with their corresponding index numbers.
-The metric names printed in the Results window and Excel are usually
-shortened for readability and to save space.
 {p_end}
 
 {synoptset 5 tabbed}{...}
