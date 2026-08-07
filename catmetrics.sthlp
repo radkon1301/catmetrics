@@ -174,7 +174,7 @@ Tversky index. By default, beta = 1/3.
 
 {title:Examples}
 
-{pstd}Compute the catmetrics command by including the true values as the dependent variable and predicted values as the independent variable.{p_end}
+{pstd}Compute the catmetrics command by including the true values as the independent variable and predicted values as the dependent variable.{p_end}
        {bf:. catmetrics y y_pred}
 
 {pstd}Compute the catmetrics command by including the true values as dependent variable while specifying the probabilities in the options.
