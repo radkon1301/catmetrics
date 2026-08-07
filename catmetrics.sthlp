@@ -12,30 +12,31 @@
 {marker nop}{...}
 {pstd}The command has four syntax forms:{p_end}
 
-{pstd}{cmd:catmetrics} {depvar} {it:indepvar} {bind:[{cmd:,} {it:options}]}{p_end}
+{pstd}{cmd:catmetrics} {it:indepvar} {depvar} {bind:[{cmd:,} {it:options}]}{p_end}
 
-{p 4 7}where {depvar} and {it:indepvar} are two categorical variables with the same
-number of observed categories. In the asymmetric context,
+{p 4 7}where {it:indepvar} and {depvar} are two categorical variables with the same
+number of observed categories. In asymmetric applications,
 {it:indepvar} precedes depvar chronologically or causally. 
-In forecasting applications, {depvar}
-represents the actual outcome and {it:indepvar} represents the predicted outcome.{p_end}
+In forecasting applications, {it:indepvar}
+represents the actual outcome and {depvar} represents the predicted outcome.
+For binary {it:indepvar} and {depvar}, the positive category must be coded
+using the smallest numeric value.{p_end}
 
-{pstd}{cmd:catmetrics} {depvar} {bind:[{cmd:,} probs(varlist) {it:options}]}{p_end}
+{pstd}{cmd:catmetrics} {it:indepvar} {bind:[{cmd:,} probs(varlist) {it:options}]}{p_end}
 
-{p 4 7}where {depvar} contains the realized values of a categorical variable, and probs(varlist) supplies the predicted probabilities for each category.
+{p 4 7}where {it:indepvar} contains the realized values of a categorical variable, and probs(varlist) supplies the predicted probabilities for each category.
 The probabilities should be listed in ascending category order.
-The number of supplied probability variables must equal the number of distinct observed categories,
-unless only two categories are present. In this case, a single probability corresponding to the lowest-order
-category may be provided instead. If {depvar} is binary, the positive category must be coded using the smallest
+The number of supplied probability variables must equal the number of distinct observed categories.
+If {it:indepvar} is binary, the positive category must be coded using the smallest
 numeric value.
 {p_end}
 
-{pstd}{cmd:catmetrics} {depvar} {bind:[{cmd:,} predict {it:options}]}{p_end}
+{pstd}{cmd:catmetrics} {it:indepvar} {bind:[{cmd:,} predict {it:options}]}{p_end}
 
-{p 4 7}where {depvar} again contains the realized outcomes, and predicted probabilities are obtained
+{p 4 7}where {it:indepvar} again contains the realized outcomes, and predicted probabilities are obtained
 from the most recently estimated Stata model (such as {bf:logistic}, {bf:logit}, {bf:probit}, {bf:oprobit},
 {bf:cmclogit}, {bf:mlogit}, {bf:mprobit}, {bf:ziologit}, {bf:zioprobit}) using Stata's post-estimation command {bf:predict}.
-If {depvar} is binary, the positive category is assumed to be coded using the smallest numeric value.
+If {it:indepvar} is binary, the positive category is assumed to be coded using the smallest numeric value.
 {p_end}
 
 {pstd}{cmd:catmetrics} {bind:[{cmd:,} mat(string) {it:options}]}{p_end}
