@@ -177,11 +177,11 @@ Tversky index. By default, beta = 1/3.
 {pstd}Compute the catmetrics command by including the true values as the independent variable and predicted values as the dependent variable.{p_end}
        {bf:. catmetrics y y_pred}
 
-{pstd}Compute the catmetrics command by including the true values as dependent variable while specifying the probabilities in the options.
+{pstd}Compute the catmetrics command by including the true values as independent variable while specifying the probabilities in the options.
 In this example, y takes on values in three categories; hence p1, p2, and p3 are necessary.{p_end}
        {bf:. catmetrics y, probs(p1 p2 p3)}
 
-{pstd}Compute the catmetrics command by including the true values as dependent variable while using the Stata {cmd:predict} command to compute the probabilities.
+{pstd}Compute the catmetrics command by including the true values as independent variable while using the Stata {cmd:predict} command to compute the probabilities.
 It is required that variable names p1, p2, up to pK are not already defined within Stata.{p_end}
        {bf:. catmetrics y, pred}
 
