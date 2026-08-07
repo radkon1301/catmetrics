@@ -1,7 +1,7 @@
 version 18.5
 mata
 
-function catmetrics(string varlist ,| string AtClasses, string power, string pseudo, string fbeta, string goalpha, string gobeta, string ibaalpha, string sokalw, string gltheta, string bkappa, string talpha, string tbeta, string gfholderp, string gflehmerp, string eceq, string ecem, string gaink, string liftk, string mceq, string mcem, string kweights, string metrics, string matrixname, string book, noexcel, string symmetric) { // KONRAD(20)
+function catmetrics(string varlist ,| string AtClasses, string power, string pseudo, string fbeta, string goalpha, string gobeta, string ibaalpha, string sokalw, string gltheta, string bkappa, string talpha, string tbeta, string gfholderp, string gflehmerp, string eceq, string ecem, string gaink, string liftk, string mceq, string mcem, string ealpha, string ibam, string crlambda, string kweights, string metrics, string matrixname, string book, noexcel, string classmetrics, string symmetric) { // KONRAD(20)
 	// Stata does weird stuff if defined in-place
 	power_r = strtoreal(power)
 	pseudo_r = strtoreal(pseudo)
@@ -17,8 +17,18 @@ function catmetrics(string varlist ,| string AtClasses, string power, string pse
 	else {
 		baulieu_kappa_r = strtoreal(bkappa)
 	}
-	t_alpha_r = strtoreal(talpha)
-	t_beta_r = strtoreal(tbeta)
+	if (strtoreal(talpha) == -9999) {
+		t_alpha_r = 1/3
+	}
+	else {
+		t_alpha_r = strtoreal(talpha)
+	}
+	if (strtoreal(tbeta) == -9999) {
+		t_beta_r = 1/3
+	}
+	else {
+		t_beta_r = strtoreal(tbeta)
+	}
 	fleiss_holder_p_r = strtoreal(gfholderp) // this used to be fleissholderp - changed the reference name in the command
 	fleiss_lehmer_p_r = strtoreal(gflehmerp) // this used to be fleisslehmerp - changed the reference name in the command
 	eceq_r = strtoreal(eceq)
@@ -27,6 +37,14 @@ function catmetrics(string varlist ,| string AtClasses, string power, string pse
 	liftk_r = strtoreal(liftk)
 	mceq_r = strtoreal(mceq)
 	mcem_r = strtoreal(mcem)
+	ealpha_r = strtoreal(ealpha)
+	ibam_r = strtoreal(ibam)
+	if (strtoreal(crlambda) == -9999) {
+		crlambda_r = 2/3
+	}
+	else {
+		crlambda_r = strtoreal(crlambda)
+	}
 	
 	do_excel = (noexcel != "noexcel")
 	do_symmetry = 0
@@ -96,15 +114,30 @@ function catmetrics(string varlist ,| string AtClasses, string power, string pse
 				errprintf(")\n")
 			}
 			// KONRAD (2) ^
-			rowMax = rowmax(X)
-	
-			nrow = rows(X)
-			ncol = cols(X)
 			
 			// KONRAD (9) v
 			allcat = uniqrows(y)
 			ncat = rows(allcat)
 			// KONRAD (9) ^
+
+			if (cols(X) == 1 & ncat == 2) {
+				// if allcat[1] is larger: need to swap labels
+				if (allcat[1] > allcat[2]) {
+					X = (1 :- X[.,1]), X
+					tmp = allcat[1]
+					allcat[1] = allcat[2]
+					allcat[2] = tmp
+				}
+				// however, if allcat[2] is larger, all good!
+				else {
+					X = (1 :- X[.,1]), X
+				}
+				
+			}
+			rowMax = rowmax(X)
+	
+			nrow = rows(X)
+			ncol = cols(X)
 			
 			// KONRAD (15) v
 			if (ncol != ncat) { // if number of provided probabilities is not equal to the number of categories
@@ -179,8 +212,8 @@ function catmetrics(string varlist ,| string AtClasses, string power, string pse
 		}
 
 
-		// reverse allcat for binary variables
-		if (length(allcat) == 2 & allcat[1] == 0 & allcat[2] == 1) {
+		// Let's not reverse allcat for binary variables
+		/*if (length(allcat) == 2 & allcat[1] == 0 & allcat[2] == 1) {
 			// printf("Binary variable detected, reversing categories\n")
 			allcat[1] = 1
 			allcat[2] = 0
@@ -196,7 +229,7 @@ function catmetrics(string varlist ,| string AtClasses, string power, string pse
 			stata(`"noisily display as err "0 = negative outcome,""')
 			stata(`"noisily display as err "1 = positive outcome""')
 			exit(1)
-		}
+		}*/
 		
 		// KONRAD - this is unused v
 		q = J(nrow, ncol, 0)
@@ -317,12 +350,19 @@ function catmetrics(string varlist ,| string AtClasses, string power, string pse
 	if (mcem_r <= 1 | abs(mcem_r - round(mcem_r)) > 1e-9) {
 		errprintf("WARNING: user-specified Maximum calibration error M = %g is outside of allowed range (M > 1, must be an integer).\n", mcem_r)
 	}
+	if (ealpha_r < 0 | ealpha_r > 1) {
+		errprintf("WARNING: user-specified Van Rijsbergen effectiveness E-measure alpha = %g is outside of allowed range (0 <= alpha <= 1).\n", ealpha_r)
+	}
+	if (ibam_r < 1 | ibam_r > 283 | abs(ibam_r - round(ibam_r)) > 1e-9) {
+		errprintf("ERROR: user-specified Generalized index of balanced accuracy m = %g is outside of allowed range (1 <= m <= 283, must be an integer referring to index of binary measure).\n", ibam_r)
+		exit(1)
+	}
 	
 	// KONRAD (20) This is for measure #203 v
 	custom_kweights = 1
 	if (kweights == "") {
 		custom_kweights = 0
-		kweights_mat = I(ncat)
+		kweights_mat = 0.5 :* I(ncat) :+ 0.5
 	}
 	else {
 		tol = 1e-8
@@ -342,6 +382,13 @@ function catmetrics(string varlist ,| string AtClasses, string power, string pse
 		}
 	}
 	// KONRAD (20)' ^
+	
+	if (strpos(metrics, ",")) {
+		errprintf("WARNING: metrics should be listed without commas. For example, use metrics(1 2 3) instead of metrics(1, 2, 3).\n")
+	}
+	if (metrics != "all" & metrics != "none" & metrics != "ordinal" & regexm(metrics, "[^P[:space:]0-9,-]")) {
+		errprintf("WARNING: metrics option should only specify the metric indices to be used or specify 'none', 'all', or 'ordinal', but extraneous characters were found.\n")
+	}
 	
 	// KONRAD (27) v
 	// create an object that stores all of the input information -- very clean to call!
@@ -370,6 +417,10 @@ function catmetrics(string varlist ,| string AtClasses, string power, string pse
 	inp.t_beta 		 = t_beta_r
 	inp.fleiss_holder_p = fleiss_holder_p_r
 	inp.fleiss_lehmer_p = fleiss_lehmer_p_r
+	inp.ealpha       = ealpha_r
+	inp.ibam         = ibam_r
+	inp.crlambda     = crlambda_r
+	inp.custom_kweights = custom_kweights
 	// KONRAD (27) ^
 	
 	// Only compute probability scores if probabilities are given by user (e.g., not when input is a confusion matrix or two variables)
@@ -381,7 +432,7 @@ function catmetrics(string varlist ,| string AtClasses, string power, string pse
 		logscore_vec = J(nrow, 1, 0)
 		power_vec = J(nrow, 1, 0)
 		pseudo_vec = J(nrow, 1, 0)
-	
+
 		//Power score
 		for (i=1; i<=nrow; i++) {
 			power_vec[i] = power_vec[i] + 1/power_beta
@@ -393,7 +444,7 @@ function catmetrics(string varlist ,| string AtClasses, string power, string pse
 				}
 			}
 		}
-	
+
 		//Pseudospherical score
 		for (i=1; i<=nrow; i++) {
 			numerator_i = 0
@@ -441,7 +492,7 @@ function catmetrics(string varlist ,| string AtClasses, string power, string pse
 				s_sum = s_sum + 1/m_count
 			}
 		}
-	
+
 		// ranked probability score
 		rkd = 0
 		for (i=1; i<=nrow; i++) {
@@ -459,50 +510,82 @@ function catmetrics(string varlist ,| string AtClasses, string power, string pse
 			}
 			rkd = rkd + rkd_sum
 		}
-		
+
 		// XXX v
-		// 2AFC #1	
+		// 2AFC #1
 		K = ncat
-		num_afc_1   = 0
-		den_afc_1 = 0
+
+		// --- Step 1: pre-sort, for each category l, the forecast probabilities
+		//     of category l among observations whose TRUE category is l. ------
+		sorted_l = J(1, K, NULL)      // pointer vector: sorted_l[l] -> sorted col-l values
+		n_l_vec  = J(K, 1, .)
+		idx_l_all = asarray_create("real")
+
 		for (l = 1; l <= K; l++) {
-			idx_l = select((1::rows(X)), y :== allcat[l])  // row indices where true cat = l
+			idx_l            = select((1::rows(X)), y :== allcat[l])
+			asarray(idx_l_all, l, select((1::rows(X)), y :== allcat[l]))
+			sorted_l[l]      = &sort(X[idx_l, l], 1)   // ascending sort
+			n_l_vec[l]       = rows(idx_l)
+		}
+		// --- Step 2: main accumulation loop --------------------------------
+		num_afc_1 = 0
+		den_afc_1 = 0
+
+		for (l = 1; l <= K; l++) {
+			B   = *sorted_l[l]        // sorted p_{l,j}(l), j = 1..n_l
+			n_l = n_l_vec[l]
+
 			for (k = 1; k <= K; k++) {
 				if (k == l) continue
-				idx_k = select((1::rows(X)), y :== allcat[k])  // row indices where true cat = k
-				// Sum I[p_{k,i}(l), p_{l,j}(l)] over all i in cat k, j in cat l
-				for (i = 1; i <= rows(idx_k); i++) {
-					p_ki_l = X[idx_k[i], l]  // forecast prob of cat l, for obs i in cat k
-					for (j = 1; j <= rows(idx_l); j++) {
-						p_lj_l = X[idx_l[j], l]  // forecast prob of cat l, for obs j in cat l
-						num_afc_1 = num_afc_1 + I_func(p_ki_l, p_lj_l)
-					}
+
+				idx_k = select((1::rows(X)), y :== allcat[k])
+				n_k   = rows(idx_k)
+
+				// O(n_k log n_l) instead of O(n_k * n_l)
+				for (i = 1; i <= n_k; i++) {
+					p_ki_l = X[idx_k[i], l]
+					lo = lb(B, p_ki_l)     // # of category-l values strictly <  p_ki_l
+					hi = ub(B, p_ki_l)     // # of category-l values <= p_ki_l
+
+					// (n_l - hi)  = # values >  p_ki_l   -> contributes 1 each
+					// (hi  - lo)  = # values == p_ki_l    -> contributes 0.5 each
+					num_afc_1 = num_afc_1 + (n_l - hi) + 0.5 * (hi - lo)
 				}
+
 				den_afc_1 = den_afc_1 + n_plus_1[k] * n_plus_1[l]
 			}
 		}
-		two_afc_1 = 1 - num_afc_1 / den_afc_1
+
+		two_afc_1 = num_afc_1 / den_afc_1
 		
-		// 2AFC #2
-		num_afc_2   = 0
+		// 2AFC #2		
+		UT = uppertriangle(J(K, K, 1), 0)   // UT[r,s] = 1 if s>r (strict upper triangle)
+
+		num_afc_2 = 0
 		den_afc_2 = 0
-		
-		// Unordered pairs (k, l) with k < l
+
 		for (k = 1; k <= K-1; k++) {
-			idx_k = select((1::rows(X)), y :== allcat[k])
+			idx_k = asarray(idx_l_all, k)
+			P_k   = X[idx_k, .]           // n_k x K forecast-probability matrix
+
 			for (l = k+1; l <= K; l++) {
-				idx_l = select((1::rows(X)), y :== allcat[l])
-				for (i = 1; i <= rows(idx_k); i++) {
-					p_ki = X[idx_k[i], .]   // full prob vector for obs i in cat k
-					for (j = 1; j <= rows(idx_l); j++) {
-						p_lj = X[idx_l[j], .]  // full prob vector for obs j in cat l
-						num_afc_2 = num_afc_2 + I_func2(p_ki, p_lj)
-					}
-				}
+				idx_l = asarray(idx_l_all, l)
+				P_l   = X[idx_l, .]       // n_l x K
+
+				Num   = P_k * UT * P_l'   // n_k x n_l : Num[i,j]   = sum_{r<s} p_ki[r]*p_lj[s]
+				D     = P_k * P_l'        // n_k x n_l : D[i,j]     = sum_r p_ki[r]*p_lj[r]
+				Denom = 1 :- D            // n_k x n_l : Denom[i,j] = 1 - D[i,j]
+				F     = Num :/ Denom      // n_k x n_l : missing where Denom[i,j]==0
+
+				contrib = (F :> 0.5) + 0.5 :* (F :== 0.5)
+
+				num_afc_2 = num_afc_2 + sum(contrib)
 				den_afc_2 = den_afc_2 + n_plus_1[k] * n_plus_1[l]
 			}
 		}
-		two_afc_2 = 1 - num_afc_2 / den_afc_2
+
+		two_afc_2 = num_afc_2 / den_afc_2
+
 		// XXX' ^
 
 		//Macro average mean probability rate MAPR
@@ -532,29 +615,24 @@ function catmetrics(string varlist ,| string AtClasses, string power, string pse
 		// AUC
 		auc = J(1, K, .)
 		for (c = 1; c <= K; c++) {
-			num_auc = 0
-			// Positive observations
-			idx_pos = select((1::rows(X)), y :== allcat[c])
-			// Negative observations (all remaining classes)
+			idx_pos = asarray(idx_l_all, c)
 			idx_neg = select((1::rows(X)), y :!= allcat[c])
+			// Sort negative-class probabilities once
+			neg = sort(X[idx_neg, c], 1)
+			num_auc = 0
 			for (i = 1; i <= rows(idx_pos); i++) {
-				// Probability assigned to the positive class
-				p_pos = X[idx_pos[i], c]
-				for (j = 1; j <= rows(idx_neg); j++) {
-					// Probability assigned to the positive class
-					p_neg = X[idx_neg[j], c]
-					if (p_pos > p_neg)
-						num_auc = num_auc + 1
-					else if (p_pos == p_neg)
-						num_auc = num_auc + 0.5
-					// else add 0
-				}
+				p = X[idx_pos[i], c]
+				// # negatives strictly smaller
+				less = lb(neg, p)
+				// # negatives tied
+				ties = ub(neg, p) - less
+				num_auc = num_auc + less + 0.5 * ties
 			}
-			den_auc = n_plus_1[c] * (rows(X) - n_plus_1[c])
+			den_auc = rows(idx_pos) * rows(idx_neg)
 			auc[c] = num_auc / den_auc
 		}
 		auc = include_averages(auc, ncat, n, n_plus_1)
-		
+
 		// AUGC
 		augc = J(1, K, .)
 		for (c = 1; c <= K; c++) {
@@ -617,7 +695,7 @@ function catmetrics(string varlist ,| string AtClasses, string power, string pse
 			ece[c] = sum_term
 		}
 		ece = include_averages(ece, ncat, n, n_plus_1)
-		
+
 		// Gain at k (top-k recall / capture rate)
 		gaink_vals = J(1, K, .)
 		n = rows(X)
@@ -632,7 +710,7 @@ function catmetrics(string varlist ,| string AtClasses, string power, string pse
 			gaink_vals[c] = num / np
 		}
 		gaink_vals = include_averages(gaink_vals, ncat, n, n_plus_1)
-		
+
 		// Lift at k
 		liftk_vals = J(1, K, .)
 		n = rows(X)
@@ -647,7 +725,7 @@ function catmetrics(string varlist ,| string AtClasses, string power, string pse
 			liftk_vals[c] = (n / (liftk_r * np)) * num
 		}
 		liftk_vals = include_averages(liftk_vals, ncat, n, n_plus_1)
-		
+
 		// Maximum Calibration Error (per class)
 		mce = J(1, K, .)
 		n = rows(X)
@@ -681,15 +759,21 @@ function catmetrics(string varlist ,| string AtClasses, string power, string pse
 		pseudo_score = 1 - sum(pseudo_vec)/nrow
 		ranked_probability_score = rkd/(nrow*(ncol-1))		
 		spherical_score = 1-spher_sum/nrow
-		zero_one_score = 1-s_sum/nrow
-		macro_avg_mean_probability_rate = 1 - mapr_inner / ncol
-		mean_probability_rate = 1 - mpr_inner / nrow
+		zero_one_score = s_sum/nrow
+		macro_avg_mean_probability_rate = mapr_inner / ncol
+		mean_probability_rate = mpr_inner / nrow
 	}
 
 	//colstripes = varnametrue :+ strofreal(allcat) 
-	//rowstripes = varnamepredicted :+ strofreal(allcat) 
-	colstripes =  strofreal(allcat) 
-	rowstripes =  strofreal(allcat) 
+	//rowstripes = varnamepredicted :+ strofreal(allcat)
+	if (ncat == 2) {
+		colstripes = ("Positive (" + strofreal(allcat[1]) + ")" \ "Negative (" + strofreal(allcat[2]) + ")")
+		rowstripes = ("Positive (" + strofreal(allcat[1]) + ")" \ "Negative (" + strofreal(allcat[2]) + ")")
+	}
+	else {
+		colstripes =  strofreal(allcat)
+		rowstripes =  strofreal(allcat)
+	}
 	if (comprob == 1) {
 		rowtitle = "Actual"
 		coltitle = "Predicted"
@@ -698,20 +782,20 @@ function catmetrics(string varlist ,| string AtClasses, string power, string pse
 		coltitle = varnamepredicted
 	}
 	displayas("txt")
-	if (comprob == 1) {
-		printf("\n{bf:Confusion Matrix}\n") 
-		printf("\n") 
-	} else {
+	if (AtClasses == "Contingency" | colsy == 2) {
 		printf("\n{bf:Contingency Table}\n")
+		printf("\n")
+	} else {
+		printf("\n{bf:Confusion Matrix}\n") 
 		printf("\n")
 	}
 
-row_sums = rowsum(conf_mat)
+	/*row_sums = rowsum(conf_mat)
 	col_sums = colsum(conf_mat)
-	colstripes_tot = colstripes \ "row sum"
-	print_matrix((conf_mat, row_sums), rowstripes, colstripes_tot, ., ., ., 0, rowtitle, coltitle)
-
-	colwidths_tot = rowmax((strlen(colstripes_tot) :+ 3, J(rows(colstripes_tot), 1, 6)))
+	colstripes_tot = colstripes \ "row sum"*/
+	print_matrix(conf_mat, rowstripes, colstripes, ., ., ., 0, rowtitle, coltitle)
+	
+	/*colwidths_tot = rowmax((strlen(colstripes_tot) :+ 3, J(rows(colstripes_tot), 1, 6)))
 	rowname_width_tot = max((strlen(rowstripes) \ 10 \ strlen(rowtitle) \ strlen(coltitle)))
 	displayas("txt")
 	printf("{hline %g}{c +}{hline %g}\n", rowname_width_tot+1, sum(colwidths_tot :+ 1) + 2)
@@ -721,7 +805,7 @@ row_sums = rowsum(conf_mat)
 		displayas("res")
 		printf("%" + strofreal(colwidths_tot[j]) + ".0f ", footer[j])
 	}
-	printf("\n")
+	printf("\n")*/
 
 //Only if probabilities were given
 	if (comprob == 1) {
@@ -729,44 +813,59 @@ row_sums = rowsum(conf_mat)
 				"Logarithmic score",                      "P2", "[0 " + uchar(8592) + " " + uchar(8734) + "]", strofreal(log_score) \
 		        "Power score (beta=" + strofreal(fbeta_r) + ")", "P3", "[0 " + uchar(8592) + " 1]",  strofreal(power_score)                \
 		        "Pseudospherical score (beta=" + strofreal(pseudo_r) + ")", "P4", "[0 " + uchar(8592) + " 1]",  strofreal(pseudo_score)               \
-		        "Ranked probability score (ORD)",         "P5", "[0 " + uchar(8592) + " 1]",  strofreal(ranked_probability_score)   \
+		        "Ranked probability score [ORD]",         "P5", "[0 " + uchar(8592) + " 1]",  strofreal(ranked_probability_score)   \
 		        "Spherical score",                        "P6", "[0 " + uchar(8592) + " 1]",  strofreal(spherical_score))
 
 		// Tokens that carry one value PER CATEGORY rather than a single scalar.
 		// For these, column 4 of diag_mat stores the per-category values joined
 		// into one blank-separated string (via invtokens), which is split back
 		// out with tokens() when printing.
-		percat_diag = ("P7" \ "P8" \ "P9" \ "P10" \ "P11" \ "P12" \ "P14")
+		percat_diag = ("P8" \ "P9" \ "P10" \ "P11" \ "P13" \ "P15" \ "P16")
 
-		diag_mat = ("Area under ROC curve",                "P7",  "[0 " + uchar(8592) + " 1]",  invtokens(strofreal(auc))                  \
-				"Area under CAP curve",                    "P8",  "[0 " + uchar(8594) + " 1]",  invtokens(strofreal(augc))                 \
-				"Average precision",                       "P9",  "[0 " + uchar(8594) + " 1]",  invtokens(strofreal(ap))              \
-				"Expected calibration error (q=" + strofreal(eceq_r) + ",M=" + strofreal(ecem_r) + ")", 
-														   "P10", "[0 " + uchar(8592) + " 1]",  invtokens(strofreal(ece))                    \
-				"Gain at k (k=" + strofreal(gaink_r) + ")","P11", "[0 " + uchar(8594) + " 1]",  invtokens(strofreal(gaink_vals))             \
-				"Lift at k (k=" + strofreal(liftk_r) + ")","P12", "[0 " + uchar(8594) + " " + uchar(8734) + "]",  invtokens(strofreal(liftk_vals)) \
-		        "Macro average mean probability rate",     "P13", "[0 " + uchar(8592) + " 1]",  strofreal(macro_avg_mean_probability_rate) \
-				"Maximum calibration error (q=" + strofreal(mceq_r) + ",M=" + strofreal(mcem_r) + ")",
-														   "P14", "[0 " + uchar(8592) + " 1]",  invtokens(strofreal(mce))             \
-		        "Mean probability rate",                   "P15", "[0 " + uchar(8592) + " 1]",  strofreal(mean_probability_rate)           \
-				"Two-alternative forced choice score #1",         "P16", "[0 " + uchar(8592) + " 1]",  strofreal(two_afc_1)                       \
-		        "Two-alternative forced choice score #2 (ORD)",   "P17", "[0 " + uchar(8592) + " 1]",  strofreal(two_afc_2)                       \
-		        "Zero-one score",                          "P18", "[0 " + uchar(8592) + " 1]",  strofreal(zero_one_score))
-
+		diag_mat = ("Accuracy rate",                          "P7", "[0 " + uchar(8594) + " 1]",  strofreal(zero_one_score) \
+				"Average precision",                       "P8",  "[0 " + uchar(8594) + " 1]",  invtokens(strofreal(ap))              \
+				"Expected calibration error (q=" + strofreal(eceq_r) + ",m=" + strofreal(ecem_r) + ")", 
+														   "P9", "[0 " + uchar(8592) + " 1]",  invtokens(strofreal(ece))                    \
+				"Gain at k (k=" + strofreal(gaink_r) + ")","P10", "[0 " + uchar(8594) + " 1]",  invtokens(strofreal(gaink_vals))             \
+				"Lift at k (k=" + strofreal(liftk_r) + ")","P11", "[0 " + uchar(8594) + " " + uchar(8734) + "]",  invtokens(strofreal(liftk_vals)) \
+		        "Macro-average mean probability rate",                       "P12", "[0 " + uchar(8594) + " 1]",  strofreal(macro_avg_mean_probability_rate) \
+				"Maximum calibration error (q=" + strofreal(mceq_r) + ",m=" + strofreal(mcem_r) + ")",
+														   "P13", "[0 " + uchar(8592) + " 1]",  invtokens(strofreal(mce))             \
+		        "Mean probability rate",                   "P14", "[0 " + uchar(8594) + " 1]",  strofreal(mean_probability_rate)           \
+				"Normalized area under CAP",                    "P15",  "[0 " + uchar(8594) + " 1]",  invtokens(strofreal(augc))                 \
+				"Normalized area under ROC",                "P16",  "[0 " + uchar(8594) + " 1]",  invtokens(strofreal(auc))                  \
+				"2AFC score #1",         "P17", "[0 " + uchar(8594) + " 1]",  strofreal(two_afc_1)                       \
+		        "2AFC score #2 [ORD]",   "P18", "[0 " + uchar(8594) + " 1]",  strofreal(two_afc_2))
+		
 		all_proper = proper_mat[., 2]
 		all_diag = diag_mat[., 2]
 		// determine which scores to show
 		if (metrics == "all") {
 			sel_proper = all_proper
-			sel_diag = all_diag
+			if (ncat == 2 | classmetrics == "classmetrics") {
+				sel_diag = all_diag
+			}
+			else {
+				sel_diag = ("P7" \ "P12" \ "P14" \ "P17" \ "P18")
+			}
 		}
 		else if (metrics == "none") {
 			sel_proper = J(0, 1, "")
 			sel_diag = J(0, 1, "")
 		}
+		else if (metrics == "ordinal") {
+			sel_proper = ("P5")
+			sel_diag = ("P18")
+		}
 		else if (metrics == "") {
-			sel_proper = ("P1" \ "P2" \ "P3")
-			sel_diag = ("P7" \ "P13" \ "P15" \ "P18")
+			if (ncat == 2) {
+				sel_proper = ("P1" \ "P2" \ "P6")
+				sel_diag = ("P7" \ "P8" \ "P12" \ "P14" \ "P15" \ "P16")
+			}
+			else {
+				sel_proper = ("P1" \ "P2" \ "P6")
+				sel_diag = ("P12" \ "P14" \ "P17")
+			}
 		}
 		else {
 			ptoks = tokens(metrics)' //'
@@ -779,24 +878,46 @@ row_sums = rowsum(conf_mat)
 			sel_proper = select(ptoks, mask_proper)
 			sel_diag = select(ptoks, mask_diag)
 		}
+		sel_ord = 0
 		if (rows(sel_proper) > 0){		
 			displayas("txt")
-			printf("\n{bf:Selected proper scores for probabilistic forecasts}\n")
-			prob_div_length = 72
+			if (metrics != "all") {
+				printf("\n{bf:Selected proper scores for probabilistic forecasts}\n")
+			}
+			else {
+				printf("\n{bf:Proper scores for probabilistic forecasts}\n")
+			}
+			M_score_len = 0
+			for (pi = 1; pi <= rows(sel_proper); pi++) {
+				idx = selectindex(all_proper :== sel_proper[pi])
+				if (rows(idx) == 0) continue
+				M_score_len = colmax(M_score_len \ strlen(proper_mat[idx, 1]))
+			}
+			prob_div_length = M_score_len + 29
 			printf("{hline %g}\n", prob_div_length)
-			printf("Token | Score                                  |   Range   |       Value\n")
+			printf("%-" + strofreal(M_score_len) + "s        Range           Value\n", "Score")
 			printf("{hline %g}\n", prob_div_length)
 			for (pi = 1; pi <= rows(sel_proper); pi++) {
 				idx = selectindex(all_proper :== sel_proper[pi])
 				if (rows(idx) == 0) continue
-				printf("%-5s | %-39s|  %s  | {bf:%11.4f}\n", proper_mat[idx,2], proper_mat[idx,1], proper_mat[idx,3], strtoreal(proper_mat[idx,4]))
+				printf("%-2s %-" + strofreal(M_score_len) + "s    %s    {bf:%11.4f}\n", proper_mat[idx,2], proper_mat[idx,1], proper_mat[idx,3], strtoreal(proper_mat[idx,4]))
+				if (strpos(proper_mat[idx, 1], "ORD") > 0) {
+					sel_ord = 1
+				}
 			}
 			printf("{hline %g}\n", prob_div_length)
-			printf("ORD: suited for ordinal data only.\n")
+			if (sel_ord) {
+				printf("ORD: suited for ordinal data only.\n")
+			}
 		}
 		if (rows(sel_diag) > 0){		
 			displayas("txt")
-			printf("\n{bf:Selected diagnostic measures for probabilistic forecasts}\n")
+			if (metrics != "all") {
+				printf("\n{bf:Selected diagnostic measures for probabilistic forecasts}\n")
+			}
+			else {
+				printf("\n{bf:Diagnostic measures for probabilistic forecasts}\n")
+			}
 			has_percat = 0
 			for (i = 1; i <= rows(sel_diag); i++) {
 				if (sum(percat_diag :== sel_diag[i])) {
@@ -804,65 +925,137 @@ row_sums = rowsum(conf_mat)
 					break
 				}
 			}
-			if (has_percat) {
-				prob_div_length = 78 + 13 * ncat
-				printf("{hline %g}\n", prob_div_length)
-				printf("Token | Score                                       |   Range   |   Value")
-				for (i=1; i<=ncat; i++) {
-					printf("  Class " + strofreal(allcat[i]))
-				}
-				printf("  Macro avg  Weighted avg")
-				printf("\n")
+			if (ncat == 2 & classmetrics != "classmetrics") {
+				has_percat = 0
 			}
-			else {
-				prob_div_length = 73
-				printf("{hline %g}\n", prob_div_length)
-				printf("Token | Score                                       |   Range   |   Value\n")
-			}
-			printf("{hline %g}\n", prob_div_length)
+			M_score_len = 0
 			for (pi = 1; pi <= rows(sel_diag); pi++) {
 				idx = selectindex(all_diag :== sel_diag[pi])
 				if (rows(idx) == 0) continue
+				M_score_len = colmax(M_score_len \ strlen(diag_mat[idx, 1]))
+			}
+			if (has_percat) {
+				if (ncat == 2) {
+					prob_div_length = M_score_len + 47 + 10 * ncat
+				}
+				else {
+					prob_div_length = M_score_len + 45 + 9 * ncat
+				}
+				printf("{hline %g}\n", prob_div_length)
+				printf("%-" + strofreal(M_score_len) + "s         Range        Value", "Score")
+				if (ncat == 2) {
+					printf("%10s", "Postv")
+					printf("%10s", "Negtv")
+					printf("     Macro     Wgted\n")
+					printf("%" + strofreal(M_score_len + 27) + "s", "")
+					printf("%10s", "(" + strofreal(allcat[1]) + ")")
+					printf("%10s", "(" + strofreal(allcat[2]) + ")")
+					printf("     averg     averg")
+				}
+				else {
+					for (i=1; i<=ncat; i++) {
+						printf("%9s", "Class")
+					}
+					printf("    Macro    Wgted\n")
+					printf("%" + strofreal(M_score_len + 27) + "s", "")
+					for (i=1; i<=ncat; i++) {
+						printf("%9s", "(" + strofreal(allcat[i]) + ")")
+					}
+					printf("    averg    averg")
+				}
+				printf("\n")
+			}
+			else {
+				prob_div_length = M_score_len + 27
+				printf("{hline %g}\n", prob_div_length)
+				printf("%-" + strofreal(M_score_len) + "s         Range        Value\n", "Score")
+			}
+			printf("{hline %g}\n", prob_div_length)
+			sel_ord = 0
+			digs = 4
+			if (has_percat & ncat > 2) {
+				digs = 3
+			}
+			for (pi = 1; pi <= rows(sel_diag); pi++) {
+				idx = selectindex(all_diag :== sel_diag[pi])
+				if (rows(idx) == 0) continue
+				if (strpos(diag_mat[idx, 1], "ORD") > 0) {
+					sel_ord = 1
+				}
 				is_percat = anyof(percat_diag, diag_mat[idx,2])
 				if (is_percat) {
 					catvals = strtoreal(tokens(diag_mat[idx,4]))
-					printf("%-5s | %-44s|  %s  | {bf:%7s}", diag_mat[idx,2], diag_mat[idx,1], diag_mat[idx,3], "")
-					for (i = 1; i <= cols(catvals); i++) {
-						if (i <= ncat) {
-							width = 6
-						}
-						else if (i == ncat + 1) {
-							width = 8
+					if (ncat == 2 & classmetrics != "classmetrics") {
+						value_of_bin = 1
+					}
+					else {
+						value_of_bin = 0
+					}
+					if (ncat > 2) {
+						printf("%-3s %-" + strofreal(M_score_len) + "s    %s     {bf:%7s}", diag_mat[idx,2], diag_mat[idx,1], diag_mat[idx,3], "")
+					}
+					else {
+						if (value_of_bin) {
+							if (sel_diag[pi] == "P11") {
+								printf("%-3s %-" + strofreal(M_score_len) + "s    %s     {bf:%7.1f}", diag_mat[idx,2], diag_mat[idx,1], diag_mat[idx,3], catvals[1])
+							}
+							else {
+								printf("%-3s %-" + strofreal(M_score_len) + "s    %s     {bf:%7.4f}", diag_mat[idx,2], diag_mat[idx,1], diag_mat[idx,3], catvals[1])
+							}
 						}
 						else {
-							width = 11
+							if (sel_diag[pi] == "P11") {
+								printf("%-3s %-" + strofreal(M_score_len) + "s    %s     %7s", diag_mat[idx,2], diag_mat[idx,1], diag_mat[idx,3], "")
+							}
+							else {
+								printf("%-3s %-" + strofreal(M_score_len) + "s    %s     %7s", diag_mat[idx,2], diag_mat[idx,1], diag_mat[idx,3], "")
+							}
 						}
-						if (sel_diag[pi] == "P12") {
-							printf("   {bf:%" + strofreal(width) + ".1f}", catvals[i])
-						}
-						else {
-							printf("   {bf:%" + strofreal(width) + ".4f}", catvals[i])
+					}
+					if (has_percat) {
+						for (i = 1; i <= cols(catvals); i++) {
+							if (ncat == 2) {
+								width = 9
+								if (sel_diag[pi] == "P11") {
+									printf(" {bf:%" + strofreal(width) + ".1f}", catvals[i])
+								}
+								else {
+									printf(" {bf:%" + strofreal(width) + "." + strofreal(digs) + "f}", catvals[i])
+								}
+							}
+							else {
+								width = 8
+								if (sel_diag[pi] == "P11") {
+									printf(" {bf:%" + strofreal(width) + ".1f}", catvals[i])
+								}
+								else {
+									printf(" {bf:%" + strofreal(width) + "." + strofreal(digs) + "f}", catvals[i])
+								}
+							}
+							
 						}
 					}
 					printf("\n")
 				}
-				else {
-					printf("%-5s | %-44s|  %s  | {bf:%7.4f}", diag_mat[idx,2], diag_mat[idx,1], diag_mat[idx,3], strtoreal(diag_mat[idx,4]))
-					if (has_percat) {
+				else if (!is_percat) {
+					printf("%-3s %-" + strofreal(M_score_len) + "s    %s     {bf:%7." + strofreal(digs) + "f}", diag_mat[idx,2], diag_mat[idx,1], diag_mat[idx,3], strtoreal(diag_mat[idx,4]))
+					/*if (has_percat) {
 						for (i = 1; i <= ncat + 2; i++) {
 							printf("         ")
 						}
-					}
+					}*/
 					printf("\n")
 				}
 			}
 			printf("{hline %g}\n", prob_div_length)
-			printf("ORD: suited for ordinal data only.\n")
+			if (sel_ord) {
+				printf("ORD: suited for ordinal data only.\n")
+			}
 		}
 	}
 
 	// Strip p-tokens from metrics before association parsing
-	if (metrics != "" & metrics != "all" & metrics != "none") {
+	if (metrics != "" & metrics != "all" & metrics != "none" & metrics != "ordinal") {
 		_atoks = tokens(metrics)'
 		_mask = J(rows(_atoks), 1, 0)
 		for (_i = 1; _i <= rows(_atoks); _i++) _mask[_i] = anyof(all_pids, _atoks[_i])
@@ -874,19 +1067,23 @@ row_sums = rowsum(conf_mat)
 	}
 
 	// Handle default association metrics
-	printing_default_metrics = 0
 	if (metrics_assoc == "" | rows(tokens(metrics_assoc)') == 0) {
 		// show association defaults'
-		printing_default_metrics = 1
 		if (ncat == 2) {
-			metrics_tokens_num = (1, 11, 42, 56, 84, 130, 136, 139, 140, 190, 197, 211, 253, 254, 255)
+			metrics_tokens_num = (1, 2, 9, 42, 64, 65, 119, 120, 125, 132, 134, 146, 148, 163, 205,
+212, 234, 241, 256, 280, 281, 282)
 			metrics_tokens = strofreal(metrics_tokens_num)
 		}
 		else {
-			metrics_tokens_num = (1, 11, 42, 54, 129, 131, 136, 139, 190, 211, 216, 232, 235)
+			metrics_tokens_num = (1, 9, 42, 44, 52, 132, 134, 138, 163, 205,
+234, 241, 256, 260)
 			metrics_tokens = strofreal(metrics_tokens_num)
 		}
 		
+	}
+	else if (metrics == "ordinal") {
+		metrics_tokens_num = (118, 131, 156, 157, 162, 180, 209, 245, 252, 258, 268)
+		metrics_tokens = strofreal(metrics_tokens_num)
 	}
 	else {
 		metrics_tokens = tokens(metrics_assoc)
@@ -896,12 +1093,18 @@ row_sums = rowsum(conf_mat)
 	// all_metrics = get_metrics_matrix(fbeta_r, goalpha_r, gobeta_r, ibaalpha_r, sokalw_r, gl_theta_r, baulieu_kappa_r, custom_kweights)
 	
 	// In order to use this, modify the "get_metrics_matrix" function in helpfunctest.ado
-	all_metrics = get_metrics_matrix(fbeta_r, goalpha_r, gobeta_r, ibaalpha_r, sokalw_r, gl_theta_r, baulieu_kappa_r, custom_kweights, t_alpha_r, t_beta_r, fleiss_holder_p_r, fleiss_lehmer_p_r)
+	all_metrics = get_metrics_matrix(inp)
 
-
+	inp.ibam_f = findexternal(all_metrics[ibam_r,2] + "()")
+	inp.ibam_type = all_metrics[ibam_r, 3]
+	if (inp.ibam_f == NULL) {
+		errprintf("%-s not found for the Generalized index of balanced accuracy.\n", all_metrics[ibam_r,2] + "()")
+		return
+	}
+	
 	// col 1 = label, col 2 = funname, cols 3, 4, 5 = types. FOR NOW, we will only print the original symmetry versions
 	selected = J(0, 5, "")
-	if (metrics_assoc  != "all" & metrics_assoc  != "none") {
+	if (metrics_assoc != "all" & metrics_assoc != "none") {
 		sel_idx = 1
 		for (i = 1; i <= cols(metrics_tokens); i++) {
 			token = metrics_tokens[i]
@@ -909,7 +1112,7 @@ row_sums = rowsum(conf_mat)
 			if (!missing(num)) {
 				idx = trunc(num)
 				if (idx < 1 | idx > rows(all_metrics)) {
-					errprintf("WARNING: index %g out of range, skipping.\n", num)
+					errprintf("WARNING: metric index %g out of range, skipping.\n", num)
 					continue
 				}
 				selected = selected \ all_metrics[idx, .]
@@ -927,67 +1130,180 @@ row_sums = rowsum(conf_mat)
 			}
 		}
 	}
-	else if (metrics_assoc  == "all") {
+	else if (metrics_assoc == "all") {
 		selected = all_metrics
 		for (row=1; row<=rows(selected); row++) {
 			selected[row,1] = strofreal(row) + ". " + selected[row,1] // adds index number to name
 		}
 	}
+
+	if (classmetrics == "classmetrics") {
+		digs = 3
+	}
+	else {
+		digs = 4
+	}
+	printable_metrics_init = get_printable_metrics(selected, inp, ncat, do_symmetry, 2)
+	need_value_col = any(printable_metrics_init[,2] :!= "")
+	need_cat_col = any(printable_metrics_init[,3..(cols(printable_metrics_init) - 1)] :!= "") & (!(ncat == 2 & classmetrics != "classmetrics")) & (!(ncat > 2 & metrics == "all" & classmetrics != "classmetrics"))
 	
-	printable_metrics = get_printable_metrics(selected, inp, ncat, do_symmetry)
-	need_value_col = any(printable_metrics[,2] :!= "")
-	need_cat_col = any(printable_metrics[,3..(cols(printable_metrics) - 1)] :!= "")
-	
+	printing_class_metrics = (classmetrics == "classmetrics") | (metrics != "none" & metrics != "" & need_cat_col)
+	if (need_cat_col & ncat > 2) {
+		printable_metrics = get_printable_metrics(selected, inp, ncat, do_symmetry, 3)
+	}
+	else {
+		printable_metrics = get_printable_metrics(selected, inp, ncat, do_symmetry, 4)
+	}
 	name_len = max(strlen(selected[,1])) + 6 * do_symmetry // determine width of metric name column
 	range_len = max(udstrlen(printable_metrics[,1])) + 1 // determine width of range column
 	value_len = colmax(max(strlen(printable_metrics[,2])) \ 5) + 2
 	class_len = colmax(max(strlen(printable_metrics[,3..(ncat+2)])) \ 7) + 2
 	macro_len = colmax(max(strlen(printable_metrics[,ncat+3])) \ 9) + 2
 	weigh_len = colmax(max(strlen(printable_metrics[,ncat+4])) \ 12) + 2
-	
-	// We have two options. 1 - Bool mask of the vector of function names. This DOESN T PRESERVE ORDER. It is more efficient
-	// 2 - For loop. This PRESERVES ORDER. Less efficient.
 
 	displayas("txt")
 	
-	// force all columns to be printed for 2-category case
-	if (ncat == 2) {
-		printing_default_metrics = 0
-	}
-	printing_default_metrics = 0 // actually we force all columns to always be printed XXX
 	//for loop option for now, it is easier to code and preserves the order
-	div_length = name_len + 2 + range_len + value_len * need_value_col + (class_len * ncat + macro_len + weigh_len) * need_cat_col * (!printing_default_metrics) + 2
+	if (ncat == 2) {
+		if (!(need_cat_col & printing_class_metrics)) {
+			div_length = name_len + 2 + range_len + value_len * need_value_col + need_cat_col * printing_class_metrics * 53 + sum(strlen(strofreal(allcat)))
+		}
+		else {
+			div_length = name_len + 2 + range_len + value_len * need_value_col + need_cat_col * printing_class_metrics * 40
+		}
+	}
+	else {
+		if (!(need_cat_col & printing_class_metrics)) {
+			div_length = name_len + 2 + range_len + value_len * need_value_col + (class_len * ncat + macro_len + weigh_len) * need_cat_col * (printing_class_metrics) + 2
+		}
+		else {
+			div_length = name_len + range_len + value_len * need_value_col + (class_len * ncat + macro_len + weigh_len) * need_cat_col * (printing_class_metrics) - 1
+		}
+	}
 	if (rows(selected) > 0){
-		printf("\n{bf:Selected measures of association & hard forecast evaluation}\n")
+		if (metrics != "all") {
+			printf("\n{bf:Selected measures of association & hard forecast evaluation}\n")
+		}
+		else {
+			printf("\n{bf:Measures of association & hard forecast evaluation}\n")
+		}
 		printf("{hline %g}\n", div_length)
-		printf("%-" + strofreal(name_len) + "s |%" + strofreal(range_len) + "s |", "Measure", "Range")
+		printf("%-" + strofreal(name_len) + "s  %" + strofreal(range_len) + "s  ", "Measure", "Range")
 		if (need_value_col) {
 			printf("%" + strofreal(value_len) + "s", "Value")
 		}
-		if (need_cat_col & !printing_default_metrics) {
-			for (k = 1; k <= ncat; k++) {
-				printf("%" + strofreal(class_len) + "s", "Class " + strofreal(allcat[k]))
+		if (need_cat_col & printing_class_metrics) {
+			if (ncat == 2) {
+				printf("%9s", "Postv")
+				printf("%9s", "Negtv")
+				printf("%" + strofreal(macro_len - 1) + "s", "Macro")
+				printf("%" + strofreal(weigh_len - 4) + "s\n", "Wgted")
+				printf("%" + strofreal(name_len + 1) + "s ", "")
+				printf("%" + strofreal(range_len + 1) + "s ", "")
+				printf("%" + strofreal(value_len * need_value_col) + "s", "")
+				//printf("%" + strofreal(name_len + 2 + range_len + value_len * need_value_col) + "s", "")
+				printf("%9s", "(" + strofreal(allcat[1]) + ")")
+				printf("%9s", "(" + strofreal(allcat[2]) + ")")
+				printf("%" + strofreal(macro_len - 1) + "s", "averg")
+				printf("%" + strofreal(weigh_len - 4) + "s", "averg")
 			}
-			printf("%" + strofreal(macro_len) + "s%" + strofreal(weigh_len) + "s", "Macro avg", "Weighted avg")
+			else {
+				for (k = 1; k <= ncat; k++) {
+					printf("%" + strofreal(class_len) + "s", "Class")
+				}
+				printf("%" + strofreal(macro_len-1) + "s%" + strofreal(weigh_len-4) + "s", "Macro", "Wgted")
+				printf("\n%" + strofreal(4 + name_len + range_len + value_len * need_value_col) + "s", "")
+				for (k = 1; k <= ncat; k++) {
+					printf("%" + strofreal(class_len) + "s", "(" + strofreal(allcat[k]) + ")")
+				}
+				printf("%" + strofreal(macro_len-1) + "s%" + strofreal(weigh_len-4) + "s", "averg", "averg")
+			}
 		}
 		printf("\n{hline %g}\n", div_length)
+		bool_ord = 0
+		bool_cl = 0
+		bool_au = 0
+		bool_con = 0
+		bool_uni = 0
 		for (i = 1; i <= rows(printable_metrics); i++) {
-			printf("%-" + strofreal(name_len) + "s |", printable_metrics[i, 5+ncat])
-			printf("%" + strofreal(range_len) + "us |", printable_metrics[i,1])
-			if (need_value_col) {
-				printf("{bf:%" + strofreal(value_len) + "s}", printable_metrics[i,2])
-			}
-			if (need_cat_col & !printing_default_metrics) {
-				for (j=3; j<3+ncat; j++) {
-					printf("{bf:%" + strofreal(class_len) + "s}", printable_metrics[i,j])
+			if (!(metrics == "all" & ncat > 2 & classmetrics != "classmetrics" & any(printable_metrics[i,3..(2+ncat)] :!= ""))) {
+				if (strpos(printable_metrics[i, 5+ncat], "ORD") > 0) {
+					bool_ord = 1
 				}
-				printf("{bf:%" + strofreal(macro_len) + "s}", printable_metrics[i,ncat+3])
-				printf("{bf:%" + strofreal(weigh_len) + "s}", printable_metrics[i,ncat+4])
+				if (strpos(printable_metrics[i, 1], "cl") > 0) {
+					bool_cl = 1
+				}
+				if (strpos(printable_metrics[i, 1], "au") > 0) {
+					bool_au = 1
+				}
+				if (strpos(printable_metrics[i, 1], "con") > 0) {
+					bool_con = 1
+				}
+				if (strpos(printable_metrics[i, 1], "uni") > 0) {
+					bool_uni = 1
+				}
+				printf("%-" + strofreal(name_len) + "s  ", printable_metrics[i, 5+ncat]) // metric name
+				printf("%" + strofreal(range_len) + "us  ", printable_metrics[i,1]) // range
+				if (need_value_col) {
+					if (!(ncat == 2 & classmetrics == "classmetrics" & any(printable_metrics[i,3..(2+ncat)] :!= ""))) {
+						printf("{bf:%" + strofreal(value_len) + "s}", printable_metrics[i,2])
+					}
+					else {
+						printf("%" + strofreal(value_len) + "s", "")
+					}
+				}
+				if (need_cat_col & printing_class_metrics) {
+					if (ncat == 2) {
+						printf("{bf:%9s}", printable_metrics[i,3])
+						printf("{bf:%9s}", printable_metrics[i,4])
+						printf("{bf:%" + strofreal(macro_len-1) + "s}", printable_metrics[i,ncat+3])
+						printf("{bf:%" + strofreal(weigh_len-4) + "s}", printable_metrics[i,ncat+4])
+					}
+					else {
+						for (j=3; j<3+ncat; j++) {
+							printf("{bf:%" + strofreal(class_len) + "s}", printable_metrics[i,j])
+						}
+						printf("{bf:%" + strofreal(macro_len-1) + "s}", printable_metrics[i,ncat+3])
+						printf("{bf:%" + strofreal(weigh_len-4) + "s}", printable_metrics[i,ncat+4])
+					}
+				}
+				printf("\n")
 			}
-			printf("\n")
 		}
 		printf("{hline %g}\n", div_length)
-		printf("ORD: suited for ordinal data only; cl: conservative lower bound; au: approximate upper bound; con: concentrated; uni: uniform \n")
+		footnote_ord = ""
+		footnote_rest = ""
+		if (bool_ord) {
+			footnote_ord = "ORD: suited for ordinal data only"
+		}
+		if (bool_cl) {
+			footnote_rest = footnote_rest + "cl: conservative lower bound"
+		}
+		if (bool_au) {
+			if (footnote_rest != "") {
+				footnote_rest = footnote_rest + "; "
+			}
+			footnote_rest = footnote_rest + "au: approximate upper bound"
+		}
+		if (bool_con) {
+			if (footnote_rest != "") {
+				footnote_rest = footnote_rest + "; "
+			}
+			footnote_rest = footnote_rest + "con: concentrated"
+		}
+		if (bool_uni) {
+			if (footnote_rest != "") {
+				footnote_rest = footnote_rest + "; "
+			}
+			footnote_rest = footnote_rest + "uni: uniform"
+		}
+		if (footnote_ord != "") {
+			printf("%s\n", footnote_ord)
+		}
+		if (footnote_rest != "") {
+			printf("%s\n", footnote_rest)
+		}
+		//printf("ORD: suited for ordinal data only; cl: conservative lower bound; au: approximate upper bound; con: concentrated; uni: uniform \n")
 	}
 	
 	if (do_excel) {
@@ -1055,6 +1371,10 @@ row_sums = rowsum(conf_mat)
 				for (c = 1; c <= cols(vals); c++) {
 					excel.put_number(row, 4 + c, vals[c])
 				}
+				// disable copying to value column:
+				/*if (ncat == 2) {
+					excel.put_number(row, 4, vals[1])
+				}*/
 			}
 			else {
 				excel.put_number(row, 4, strtoreal(diag_mat[i, 4]))
@@ -1094,14 +1414,8 @@ row_sums = rowsum(conf_mat)
 		excel.put_string(2, 6 + ncol, "Weighted average")
 		
 		// KONRAD
-		if (ncol == 2) {
-			excel.put_string(2, 5, "Positive class")
-			excel.put_string(2, 6, "Negative class")
-		}
-		else {
-			for (i=1; i<=ncol; i++){
-				excel.put_string(2, 4+i, "Class " + strofreal(allcat[i]))
-			}
+		for (i=1; i<=ncol; i++){
+			excel.put_string(2, 4+i, "Class " + strofreal(allcat[i]))
 		}
 		
 		// We will use automatic row numbers to simplify copy pasting

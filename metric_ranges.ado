@@ -347,8 +347,21 @@ function cramer_concordance_R(n, K, type, struct MetricInputs scalar inp) {
 //#47
 function cressie_read_R(n, K, type, struct MetricInputs scalar inp) {
     if (type == "CTS") {
-        hi = strofreal(round(9/5 * n * (K^(2/3) - 1), 0.01))
-        return("[0 " + uchar(8594) + " " + hi + "]")
+		lambda = inp.crlambda
+		if (lambda == 0) {
+			return(likelihood_ratio_R(n, K, type, inp))
+		}
+		else if (lambda == -1) {
+			return(mdis_R(n, K, type, inp))
+		}
+		else if (lambda == 1) {
+			return(pearson_chi2_R(n, K, type, inp))
+		}
+		else if (abs(lambda - 2/3) < 1e-9) {
+			hi = strofreal(round(2*n/(lambda*(lambda+1)) * (K^lambda - 1), 0.01))
+			return("[0 " + uchar(8594) + " " + hi + "]")
+		}
+		return("")
     }
     return("")
 }
@@ -536,7 +549,7 @@ function forbes_2_R(n, K, type, struct MetricInputs scalar inp) {
 }
 
 //#70
-function freeman_tukey_statistic_R(n, K, type, struct MetricInputs scalar inp) {
+function freeman_tukey_statistic_as_R(n, K, type, struct MetricInputs scalar inp) {
     if (type == "CTS") {
         hi = strofreal(round(8*n*(1 - 1/sqrt(K)), 0.01))
         return("[0 " + uchar(8594) + " " + hi + "]")
@@ -579,9 +592,7 @@ function ganascia_R(n, K, type, struct MetricInputs scalar inp) {
 //#75
 function gerrity_skill_score_R(n, K, type, struct MetricInputs scalar inp) {
     if (type == "AS") {
-        lo = strofreal(round(-1/n, 0.01))
-        hi = strofreal(round(1/n, 0.01))
-        return("[" + lo + " " + uchar(8594) + " 0 " + uchar(8594) + " " + hi + "]")
+        return("[-1 " + uchar(8594) + " 0 " + uchar(8594) + " 1]")
     }
     return("")
 }
@@ -606,8 +617,10 @@ function gilbert_skill_score_R(n, K, type, struct MetricInputs scalar inp) {
 //#78
 function gilbert_wells_R(n, K, type, struct MetricInputs scalar inp) {
     if (type == "CTS") {
-        lo = strofreal(round(log(4/(n + 2))/log(2), 0.01))
-        hi = strofreal(round(log(n)/log(2), 0.01))
+		lo = strofreal(round(ln(8/(pi()*n)) + 2 * ( lngamma(n+1) + 4*lngamma(n/4 + 1) - 4*lngamma(n/2 + 1) ), 0.01))
+		hi = strofreal(round(ln(8/(pi()*n)) + 2 * ( lngamma(n+1) - 2*lngamma(n/2 + 1) ), 0.01))
+        //lo = strofreal(round(log(4/(n + 2))/log(2), 0.01))
+        //hi = strofreal(round(log(n)/log(2), 0.01))
         return("[" + lo + " " + uchar(8594) + " 0 " + uchar(8594) + " " + hi + "]")
     }
     return("")
@@ -837,13 +850,18 @@ function hoeffding_2_R(n, K, type, struct MetricInputs scalar inp) {
 //#105
 function iba_R(n, K, type, struct MetricInputs scalar inp) {
     if (type == "AS") {
-		if (inp.ibaalpha <= 0.5) {
-			return("[0 " + uchar(8594) + " 1]")
+		if (inp.ibam == 125) {
+			if (inp.ibaalpha <= 0.5) {
+				return("[0 " + uchar(8594) + " 1]")
+			}
+			else {
+				x = (1 + inp.ibaalpha) / (3 * inp.ibaalpha)
+				hi = strofreal(round((1 + inp.ibaalpha * (1 - x)) * sqrt(x), 0.01))
+				return("[0 " + uchar(8594) + " " + hi + "]")
+			}
 		}
 		else {
-			x = (1 + inp.ibaalpha) / (3 * inp.ibaalpha)
-			hi = strofreal(round((1 + inp.ibaalpha * (1 - x)) * sqrt(x), 0.01))
-			return("[0 " + uchar(8594) + " " + hi + "]")
+			return("range dependent on M")
 		}
     }
     return("")
@@ -1022,9 +1040,9 @@ function lerman_R(n, K, type, struct MetricInputs scalar inp) {
 
 //#125
 function leverage_R(n, K, type, struct MetricInputs scalar inp) {
-    if (type == "AS") {
-        lo = strofreal(round(-0.25, 0.01))
-        hi = strofreal(round(1 - 1/n^2, 0.01))
+    if (type == "CTS") {
+        lo = strofreal(round(-1/4, 0.01))
+        hi = strofreal(round(1/4, 0.01))
         return("[" + lo + " " + uchar(8594) + " " + hi + "]")
     }
     return("")
@@ -1689,7 +1707,7 @@ function warrens_R(n, K, type, struct MetricInputs scalar inp) {
 //#204
 function weighted_kappa_R(n, K, type, struct MetricInputs scalar inp) {
     if (type == "TS") {
-		if (K == 2 | all(inp.kweights_mat :== I(K))) {
+		if (K == 2 | all(inp.kweights_mat :== I(K)) | !inp.custom_kweights) {
 			return("[-1 " + uchar(8594) + " 0 " + uchar(8594) + " 1]")
 		}
 		else {
@@ -1870,15 +1888,6 @@ function size_difference_R(n, K, type, struct MetricInputs scalar inp) {
 		return("[0 " + uchar(8592) + " 1]")
 	}
 	return("")
-}
-
-function dispersion_R(n, K, type, struct MetricInputs scalar inp) {
-	if (type == "CTS") {
-		lo = strofreal(round(-1/4, 0.01))
-		hi = strofreal(round(1/4, 0.01))
-        return("[" + lo + " " + uchar(8594) + " 0 " + uchar(8594) + " " + hi + "]")
-    }
-    return("")
 }
 
 function chord_distance_R(n, K, type, struct MetricInputs scalar inp) {
@@ -2280,5 +2289,211 @@ function hubert_arabie_R(n, K, type, struct MetricInputs scalar inp) {
 	return("")
 }
 
+function neg_pred_value_R(n, K, type, struct MetricInputs scalar inp) {
+	if (type == "AS") {
+		return("[0 " + uchar(8594) + " 1]")
+	}
+	return("")
+}
+
+function discriminant_power_R(n, K, type, struct MetricInputs scalar inp) {
+	if (type == "CTS") {
+		lo = strofreal(round(-2 * sqrt(3) / pi() * log(n/2 - 1), 0.01))
+		hi = strofreal(round(2 * sqrt(3) / pi() * log(n/2 - 1), 0.01))
+		return("[" + lo + " " + uchar(8594) + " " + hi + "]")
+	}
+	return("")
+}
+
+function goodman_unweighted_assc_R(n, K, type, struct MetricInputs scalar inp) {
+	if (type == "CTS") {
+		lo = strofreal(round(-1 / 2 * log(n/2 - 1), 0.01))
+		hi = strofreal(round(1 / 2 * log(n/2 - 1), 0.01))
+		return("[" + lo + " " + uchar(8594) + " " + hi + "]")
+	}
+	return("")
+}
+
+function specificity_R(n, K, type, struct MetricInputs scalar inp) {
+	if (type == "AS") {
+		return("[0 " + uchar(8594) + " 1]")
+	}
+	return("")
+}
+
+function hellinger_distance_R(n, K, type, struct MetricInputs scalar inp) {
+	if (type == "TS") {
+		return("[0 " + uchar(8592) + " 2]")
+	}
+	return("")
+}
+
+function johnson_R(n, K, type, struct MetricInputs scalar inp) {
+	if (type == "TS") {
+		return("[0 " + uchar(8594) + " 2]")
+	}
+	return("")
+}
+
+function predicted_negative_rate_R(n, K, type, struct MetricInputs scalar inp) {
+    if (type == "AS") {
+        return("[0 (never), 1 (always)]")
+    }
+    return("")
+}
+
+function error_rate_R(n, K, type, struct MetricInputs scalar inp) {
+	if (type == "CTS") {
+		return("[0 " + uchar(8592) + " 1]")
+	}
+	return("")
+}
+
+function balanced_error_rate_R(n, K, type, struct MetricInputs scalar inp) {
+	if (type == "CS") {
+		return("[0 " + uchar(8592) + " 0.5 " + uchar(8592) + " 1]")
+	}
+	return("")
+}
+
+function van_rijsbergen_R(n, K, type, struct MetricInputs scalar inp) {
+	if (type == "AS") {
+		return("[0 " + uchar(8592) + " 1]")
+	}
+	return("")
+}
+
+function replacement_comp_j_R(n, K, type, struct MetricInputs scalar inp) {
+	if (type == "TS") {
+		return("[0 " + uchar(8592) + " 1]")
+	}
+	return("")
+}
+
+function replacement_comp_s_R(n, K, type, struct MetricInputs scalar inp) {
+	if (type == "TS") {
+		return("[0 " + uchar(8592) + " 1]")
+	}
+	return("")
+}
+
+function replacement_comp_b_R(n, K, type, struct MetricInputs scalar inp) {
+	if (type == "TS") {
+		return("[0 " + uchar(8592) + " 1]")
+	}
+	return("")
+}
+
+function richness_diff_j_R(n, K, type, struct MetricInputs scalar inp) {
+	if (type == "TS") {
+		return("[0 " + uchar(8592) + " 1]")
+	}
+	return("")
+}
+
+function richness_diff_s_R(n, K, type, struct MetricInputs scalar inp) {
+	if (type == "TS") {
+		return("[0 " + uchar(8592) + " 1]")
+	}
+	return("")
+}
+
+function richness_diff_b_R(n, K, type, struct MetricInputs scalar inp) {
+	if (type == "TS") {
+		return("[0 " + uchar(8592) + " 1]")
+	}
+	return("")
+}
+
+function batagelj_bren_R(n, K, type, struct MetricInputs scalar inp) {
+	if (type == "CTS") {
+		hi = strofreal(round((n/2 - 1)^2, 0.01))
+		return("[0 " + uchar(8592) + " 1 " + uchar(8592) + " " + hi + "]")
+	}
+	return("")
+}
+
+function theil_sym_R(n, K, type, struct MetricInputs scalar inp) {
+	if (type == "CTS") {
+		return("[0 " + uchar(8594) + " 1]")
+	}
+	return("")
+}
+
+function root_mean_sq_diff_R(n, K, type, struct MetricInputs scalar inp) {
+	if (type == "CTS") {
+		return("[0 " + uchar(8592) + " 1]")
+	}
+	return("")
+}
+
+function mantel_haenszel_R(n, K, type, struct MetricInputs scalar inp) {
+	if (type == "CTS") {
+		hi = strofreal(round(n - 1, 0.01))
+		return("[0 " + uchar(8594) + " " + hi + "]")
+	}
+	return("")
+}
+
+function mueller_schuessler_R(n, K, type, struct MetricInputs scalar inp) {
+	if (type == "AS") {
+		return("[0 " + uchar(8594) + " 1]")
+	}
+	return("")
+}
+
+function gini_impurity_R(n, K, type, struct MetricInputs scalar inp) {
+	if (type == "AS") {
+		hi = strofreal(round(1 - 1/K, 0.01))
+		return("[0 " + uchar(8594) + " " + hi + "]")
+	}
+	return("")
+}
+
+function renkonen_R(n, K, type, struct MetricInputs scalar inp) {
+	if (type == "AS") {
+		return("[0 " + uchar(8592) + " 1]")
+	}
+	return("")
+}
+
+function kent_foster_1_R(n, K, type, struct MetricInputs scalar inp) {
+	if (type == "TS") {
+		lo = strofreal(round(-1/3, 0.01))
+		return("[" + lo + " " + uchar(8594) + " 0]")
+	}
+	return("")
+}
+
+function kent_foster_2_R(n, K, type, struct MetricInputs scalar inp) {
+	if (type == "TS") {
+		lo = strofreal(round(-1/3, 0.01))
+		return("[" + lo + " " + uchar(8594) + " 0]")
+	}
+	return("")
+}
+
+function freeman_tukey_statistic_R(n, K, type, struct MetricInputs scalar inp) {
+	if (type == "CTS") {
+		lo = strofreal(round(4 * (sqrt(n) + sqrt(n+1) - sqrt(4*n+1))^2, 0.01))
+		hi = strofreal(round(4 * (K*(sqrt(n/K) + sqrt(n/K+1) - sqrt(4*n/K^2+1))^2 + K*(K-1)*(1-sqrt(4*n/K^2+1))^2), 0.01))
+		return("[" + lo + " " + uchar(8594) + " " + hi + "]")
+	}
+	return("")
+}
+
+function false_omission_rate_R(n, K, type, struct MetricInputs scalar inp) {
+	if (type == "AS") {
+		return("[0 " + uchar(8592) + " 1]")
+	}
+	return("")
+}
+
+function false_positive_rate_R(n, K, type, struct MetricInputs scalar inp) {
+	if (type == "AS") {
+		return("[0 " + uchar(8592) + " 1]")
+	}
+	return("")
+}
 
 end

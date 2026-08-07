@@ -1,9 +1,9 @@
 {smcl}
-{* *! version 0.2.0  02Jul2026}{...}
+{* *! version 0.3.0  07Aug2026}{...}
 {title:Title}
 
-{pstd}{helpb catmetrics##catmetrics:catmetrics} {c -} computes 259 measures of association and correlation between two categorical
- variables (dichotomous and polytomous, nominal and ordinal), 6 proper scores for
+{pstd}{helpb catmetrics##catmetrics:catmetrics} {c -} computes 283 measures of association and correlation between two categorical
+ variables, 6 proper scores for
  probabilistic forecasts, and 12 diagnostic measures of the accuracy of 
  probabilistic forecasts of such variables.{p_end}
 
@@ -17,135 +17,163 @@
 {p 4 7}where {depvar} and {it:indepvar} are two categorical variables with the same
 number of observed categories. In the asymmetric context,
 {it:indepvar} precedes depvar chronologically or causally. 
-In the context of forecasting, {it:indepvar}
-stands for the actual outcomes and {depvar} stands for the predicted outcomes.{p_end}
+In forecasting applications, {depvar}
+represents the actual outcome and {it:indepvar} represents the predicted outcome.{p_end}
 
 {pstd}{cmd:catmetrics} {depvar} {bind:[{cmd:,} probs(varlist) {it:options}]}{p_end}
 
-{p 4 7}where {depvar} contains the realized values of a categorical variable, and probs(varlist) supplies the predicted probabilities for each category. 
-For ordinal outcomes, the probabilities should be listed in ascending category order. 
-The number of supplied probability variables must equal the number of distinct observed categories.
+{p 4 7}where {depvar} contains the realized values of a categorical variable, and probs(varlist) supplies the predicted probabilities for each category.
+The probabilities should be listed in ascending category order.
+The number of supplied probability variables must equal the number of distinct observed categories,
+unless only two categories are present. In this case, a single probability corresponding to the lowest-order
+category may be provided instead. If {depvar} is binary, the positive category must be coded using the smallest
+numeric value.
 {p_end}
 
 {pstd}{cmd:catmetrics} {depvar} {bind:[{cmd:,} predict {it:options}]}{p_end}
 
 {p 4 7}where {depvar} again contains the realized outcomes, and predicted probabilities are obtained
-from the most recently estimated Stata model (e.g., probit, logit, oprobit, mlogit) by the post-estimation command predict.
+from the most recently estimated Stata model (such as {bf:logistic}, {bf:logit}, {bf:probit}, {bf:oprobit},
+{bf:cmclogit}, {bf:mlogit}, {bf:mprobit}, {bf:ziologit}, {bf:zioprobit}) using Stata's post-estimation command {bf:predict}.
+If {depvar} is binary, the positive category is assumed to be coded using the smallest numeric value.
 {p_end}
 
 {pstd}{cmd:catmetrics} {bind:[{cmd:,} mat(string) {it:options}]}{p_end}
 
-{p 4 7}where mat(string) supplies a contingency table (confusion matrix) directly.{p_end}
+{p 4 7}where mat(string) supplies a contingency table or confusion matrix directly.
+If {bf:mat()} is binary, the positive category must be in the first column/row.{p_end}
 
-{p 4 7}In each case, the command displays a classification table (confusion matrix), computes 259
-measures of association, similarity and categorical hard forecast evaluation,
-and also returns the class-specific measures for each
-class as well as their simple and weighted averages. When predicted probabilities are supplied,
-18 strictly proper scoring rules and diagnostic measures of probabilistic forecast evaluation are additionally computed. The following options are available.{p_end}
+{p 4 7}In each case, the command displays a classification table (confusion matrix), computes the 283
+measures of association, agreement, information, similarity, and deterministic categorical forecast evaluation,
+and returns the class-specific measures for each
+class as well as their macro and weighted averages. When predicted probabilities are supplied, {cmd:catmetrics}
+additionally computes 6 strictly proper scoring rules and 12 diagnostic measures for probabilistic forecast evaluation.
+All computed measures can be exported to an Excel file.{p_end}
+
+{p 4 7} The following options are available.
 
 {synoptset 26 tabbed}{...}
 {synopthdr}
 {synoptline}
 
-{synopt :{opt mat:(string)}} specifies the contingency table that should be used to compute the catmetrics command. When this option is used, no variable input is required. By default, no contingency table is assumed if the option is not used.
+{synopt :{opt excel:(string)}} specifies the name of the saved *.xlsx file with all computed measures.
+By default, the file is named Catmetrics.xlsx.
 
-{synopt :{opt probs:(varlist)}} specifies the list of variables containing the predicted probabilities for each category of the dependent variable. 
-Variables must be supplied in ascending order of the numeric category codes of {depvar}, and the number of probability variables must equal the number of distinct categories. Cannot be combined with {it:indepvar} or {opt predict}.
-
-{synopt :{opt pred:ict}} specifies that the command {cmd:predict} should be used to compute the probability variables from the most recently estimated model. 
-The model must support probability prediction (e.g., {cmd:logit}, {cmd:mlogit}). Cannot be combined with {it:indepvar} or {opt probs()}.
-
-{synopt :{opt excel:(string)}} specifies the name of the saved *.xlsx file. By default, the file name is "Catmetrics.xlsx".
-
-{synopt :{opt noexcel}} does not create an *.xlsx file. By default, results are saved to an *.xlsx file.
+{synopt :{opt noexcel}} suppresses creation of the *.xlsx file. 
+By default, results are saved to the Catmetrics.xlsx file.
 
 {synopt :{opt metrics:(string)}}
-specifies which measures to display in the Results window. Metrics can be selected in any order
+specifies the measures to display in the Results window. Measures can be selected in any order
 using their indices
-(see the names and indices in {help catmetrics##MetricReferenceTable:Metric Reference Table} below).
-Probability scores can be
-selected using tokens P1 through P18 (see the {help catmetrics##ProbScoreTable:Probabilistic Score Table} below). 
-Specifying metrics(none) results in no metrics and scores being displayed. Specifying metrics(all)
-displays all available metrics in the Results window (measures for probabilistic forecast
-evaluation are computed only if predicted probabilities are supplied).
-If any metrics or probability scores are selected,
-neither the default metrics nor probability scores will be displayed.
-For the default print-outs, refer to {help catmetrics##DefaultPrintOuts:Default Print-outs section}.
+(see the list of available measures in {help catmetrics##MetricReferenceTable:Metric Reference Table} below).
 {p_end}
 
-{synopt :{opt bkappa:(scalar)}} specifies the kappa (a positive irrational number)
- to be used for the [15] Baulieu #22 metric.
-By default, the kappa value is set to Euler's e. It is required that kappa > 0.
+{synopt :}
+{opt metrics(all)} displays all available measures. Probability-based measures are computed only
+when predicted probabilities are supplied.
+{p_end}
 
-{synopt :{opt eceq:(scalar)}} specifies the q value to be used for the [P10] Expected Calibration
-Error. By default, the q value is set to 1.
-It is required that q > 0.
+{synopt :}
+{opt metrics(ordinal)} displays only the measures for ordinal data.
+{p_end}
 
-{synopt :{opt ecem:(scalar)}} specifies the m value to be used for the [P10] Expected Calibration
-Error. By default, the m value is set to 10.
-It is required that m is an integer and m > 1.
+{synopt :}
+{opt metrics(none)} suppresses the display of all measures.
+{p_end}
 
-{synopt :{opt fbeta:(scalar)}} specifies the beta value to be used for the [75] F_beta score. By default, the beta value is set to 1.5.
-It is required that beta ≥ 0.
+{synopt :}
+If {opt metrics()} is not specified, {cmd:catmetrics} displays the default set of measures: {break}
+for binary data: 1, 2, 9, 42, 64, 65, 119, 120, 125, 132, 134, 146, 148,
+163, 205, 212, 234, 241, 256, 280, 281, and 282, and additionally, if predicted
+probabilities are supplied, P1, P2, P6, P7, P8, P12, P14, P15, and P16; {break}
+for multicategory data with K > 2: 1, 9, 42, 44, 52, 132, 134, 138, 163, 205,
+234, 241, 256, 260, and additionally, if predicted probabilities are supplied,
+P1, P2, P6, P12, P14, and P17.
+{p_end}
 
-{synopt :{opt gaink:(scalar)}} specifies the k value to be used for the [P11] Gain at k. By default, the k value is set to 0.1.
-It is required that 0 < k < 1.
+{synopt :{opt classmet:rics}} displays class-specific measures for binary data. By default,
+class-specific measures for binary data are not displayed. For multicategory data (K > 2), if
+binary metrics are selected in {opt metrics()}, their class-specific values are always displayed.
 
-{synopt :{opt gfholderp:(scalar)}} specifies the p value to be used for the [99-101] Generalized Fleiss
-(Holder) #1, #2, and #3 coefficients. By default, the p value is set to 0.5. It is required that p != 0.
+{synopt :{opt bkappa:(scalar)}} specifies the value of kappa, a positive irrational number,
+used for [16] Baulieu coefficient #22. By default, kappa = e.
 
-{synopt :{opt gflehmerp:(scalar)}} specifies the p value to be used for the [105-107] Generalized Fleiss
-(Lehmer) #1, #2, and #3 coefficients. By default, the p value is set to 1.5.
-There are no restrictions on the value of p.
+{synopt :{opt crlambda:(scalar)}} specifies the value of lambda used for [53]
+Cressie-Read power divergence statistic. By default, lambda = 2/3.
 
-{synopt :{opt gltheta:(scalar)}} specifies the theta value to be used for the [134] Gower-Legendre S_theta index.
-By default, the theta value is set to 1.5. It is required that theta > 0.
+{synopt :{opt ealpha:(scalar)}} specifies the value of 0 <= alpha <= 1 used for
+[271] van Rijsbergen effectiveness E-measure. By default, alpha = 0.5.
 
-{synopt :{opt goalpha:(scalar)}} specifies the alpha value to be used for the [135] Gray-Orlowska interestingness index. By default, the alpha value is set to 2.
-It is required that alpha > 0.
+{synopt :{opt eceq:(scalar)}} specifies the value of q > 0 used for [P9]
+expected calibration error. By default, q = 1.
 
-{synopt :{opt gobeta:(scalar)}} specifies the beta value to be used for the [135] Gray-Orlowska interestingness index. By default, the beta value is set to 2.
-It is required that beta > 0.
+{synopt :{opt ecem:(scalar)}} specifies the integer value of m in {2,3,...} used for
+the [P9] expected calibration error. By default, m = 10.
 
-{synopt :{opt ibaalpha:(scalar)}} specifies the alpha value to be used for the [146] Index of balanced accuracy. By default, the alpha value is set to 0.5.
-It is required that 0 <= alpha <= 1.
+{synopt :{opt fbeta:(scalar)}} specifies the value of beta >= 0 used for
+[78] F-beta score. By default, beta = 1.5.
 
-{synopt :{opt kweights:(string)}} specifies the weighting matrix to be used for the [250] Weighted kappa coefficient.
-The weighting matrix must have the same dimensions as the contingency table.
-It is required that the weighting matrix is symmetric, all main diagonal entries are 1, and that all entries are in [0, 1].
-By default, the weighting matrix is set to the identity matrix.
+{synopt :{opt gaink:(scalar)}} specifies the value of 0 < k < 1 used for
+[P10] gain at k. By default, k = 0.1.
 
-{synopt :{opt liftk:(scalar)}} specifies the k value to be used for the [P12] Lift at k. By default, the k value is set to 0.1.
-It is required that 0 < k < 1.
+{synopt :{opt gfholderp:(scalar)}} specifies the value of p != 0 used for
+[99-101] generalized Fleiss coefficients (Hölder) #1, #2, and #3.
+By default, p = 0.5.
 
-{synopt :{opt mceq:(scalar)}} specifies the q value to be used for the [P14] Maximum Calibration
-Error. By default, the q value is set to 1.
-It is required that q > 0.
+{synopt :{opt gflehmerp:(scalar)}} specifies the value of p used for [105-107]
+generalized Fleiss coefficients (Lehmer) #1, #2, and #3. By default, p = 1.5.
 
-{synopt :{opt mcem:(scalar)}} specifies the m value to be used for the [P14] Maximum Calibration
-Error. By default, the m value is set to 10.
-It is required that m is an integer and m > 1.
+{synopt :{opt gltheta:(scalar)}} specifies the value of theta > 0 used for [139]
+Gower-Legendre S_theta index. By default, theta = 1.5.
 
-{synopt :{opt power:(scalar)}} specifies the beta value to be used for the [P3] Power score. By default, the beta value is set to 1.5.
-It is required that beta > 1.
+{synopt :{opt goalpha:(scalar)}} specifies the value of alpha > 0 used for [140]
+Gray-Orlowska interestingness index. By default, alpha = 2.
 
-{synopt :{opt pseudo:spherical(scalar)}} specifies the beta value to be used for the [P4] Pseudospherical score. By default, the beta value is set to 1.5.
-It is required that beta > 1.
+{synopt :{opt gobeta:(scalar)}} specifies the value of beta > 0 used for [140]
+Gray-Orlowska interestingness index. By default, beta = 2.
 
-{synopt :{opt sokalw:(scalar)}} specifies the w value to be used for the [223] Sokal-Sneath coefficient #6.
-By default, the w value is set to 3. It is required that w > 0.
+{synopt :{opt ibaalpha:(scalar)}} specifies the value of alpha (0 <= alpha <= 1)
+used for [117] generalized index of balanced accuracy. By default, alpha = 0.5.
 
-{synopt :{opt talpha:(scalar)}} specifies the alpha value to be used for the [243] Tversky index.
-By default, the alpha value is set to 4. It is required that alpha > 0.
+{synopt :{opt ibam:(scalar)}} specifies the value of m, the index of the binary measure,
+used for [117] generalized index of balanced accuracy. By default, m = 125,
+corresponding to the G-mean.
 
-{synopt :{opt tbeta:(scalar)}} specifies the beta value to be used for the [243] Tversky index.
-By default, the beta value is set to 4. It is required that beta > 0.
+{synopt :{opt kweights:(string)}} specifies the weighting matrix used for [274]
+weighted kappa coefficient. The weighting matrix must be symmetric and have the
+same dimensions as the contingency table. All main diagonal entries ωii must equal
+1, and all off-diagonal entries ωij, i ≠ j, must lie in the interval [0,1].
+By default, ωii = 1 and ωij = 0.5, i ≠ j.
+
+{synopt :{opt liftk:(scalar)}} specifies the value of 0 < k < 1 used for [P11]
+lift at k. By default, k = 0.1.
+
+{synopt :{opt mceq:(scalar)}} specifies the value of q > 0 used for [P13]
+maximum calibration error. By default, q = 1.
+
+{synopt :{opt mcem:(scalar)}} specifies the integer value of m in {2,3,...} used
+for [P13] maximum calibration error. By default, m = 10.
+
+{synopt :{opt power:(scalar)}} specifies the value of beta > 1 used for [P3]
+power score. By default, beta = 1.5.
+
+{synopt :{opt pseudo:spherical(scalar)}} specifies the value of beta > 1 used for
+[P4] pseudospherical score. By default, beta = 1.5.
+
+{synopt :{opt sokalw:(scalar)}} specifies the value of w > 0 used for [244]
+Sokal-Sneath coefficient #6. By default, w = 3.
+
+{synopt :{opt talpha:(scalar)}} specifies the value of alpha > 0 used for [266]
+Tversky index. By default, alpha = 1/3.
+
+{synopt :{opt tbeta:(scalar)}} specifies the value of beta > 0 used for [266]
+Tversky index. By default, beta = 1/3.
 
 {synoptline}
 
 {title:Examples}
 
-{pstd}Compute the catmetrics command by including the true values as the dependent variable and predicted values as dependent variable.{p_end}
+{pstd}Compute the catmetrics command by including the true values as the dependent variable and predicted values as the independent variable.{p_end}
        {bf:. catmetrics y y_pred}
 
 {pstd}Compute the catmetrics command by including the true values as dependent variable while specifying the probabilities in the options.
@@ -156,11 +184,12 @@ In this example, y takes on values in three categories; hence p1, p2, and p3 are
 It is required that variable names p1, p2, up to pK are not already defined within Stata.{p_end}
        {bf:. catmetrics y, pred}
 
-{pstd}Compute the catmetrics command by specifying a contingency table in the options and saving the results to "Example file name.xlsx".{p_end}
-       {bf:. catmetrics, mat(contingency_table) excel(Example file name)}
+{pstd}Compute the catmetrics command by specifying a contingency table in the options and saving the results to "Example file name.xlsx".
+Also display class-specific measures if the data is binary.{p_end}
+       {bf:. catmetrics, mat(contingency_table) excel(Example file name) classmet}
 
-{pstd}Compute the catmetrics command for the specified contingency table, not saving the results to an .xlsx book and printing metrics 1 (accuracy), 123 (goodall), and 5 (ample).{p_end}
-       {bf:. catmetrics, mat(contingency_table) noexcel metrics(1 goodall 5)}
+{pstd}Compute the catmetrics command for the specified contingency table, not saving the results to an .xlsx book and printing metrics 1, 123, and 5.{p_end}
+       {bf:. catmetrics, mat(contingency_table) noexcel metrics(1 123 5)}
 	   
 {pstd}Compute the catmetrics command with different beta values for the Power, Pseudospherical, and Fbeta score.{p_end}
        {bf:. catmetrics y, probs(p1 p2 p3) power(2.5) pseudospherical(2.5) fbeta(2.5)}
@@ -171,33 +200,32 @@ It is required that variable names p1, p2, up to pK are not already defined with
 {pstd}Compute the catmetrics command for a contingency table named Confusion, saving to "demo_1.xlsx" and suppressing all printed metrics, including probabilistic scores.{p_end}
        {bf:. catmetrics, mat(Confusion) metrics(none) excel(demo_1)}
 
-{pstd}Compute the catmetrics command with only probabilistic-score tokens specified in {opt metrics()}; the default association metrics are printed alongside the requested scores.{p_end}
+{pstd}Compute the catmetrics command with only probabilistic-score tokens specified in {opt metrics()}.{p_end}
        {bf:. webuse fullauto}
        {bf:. oprobit rep77 foreign length mpg}
-       {bf:. catmetrics rep77, pred metrics(p1 p3 p5 p10)}
+       {bf:. catmetrics rep77, pred metrics(P1 P3 P5 P10)}
 
 {title:Output}
 
-{p 4 7}By default, a selection of measures along with their ranges and values are printed in the Stata console.{p_end}
+{p 4 7}By default, a selection of measures along with their ranges and values is printed in the Stata console.{p_end}
 {p 4 7}The printed contingency (or confusion) table includes an additional row and column reporting the row and column sums, with the overall sample size n shown in the bottom-right corner.{p_end}
-{p 4 7}The arrows in the ranges can be interpreted as follows.
-In case of two arrows pointing in the same direction, such as [-1 → 0 → 1],
-the arrows point from the value for perfect negative association, to the midpoint
-achieved under independence, to the value for perfect positive association.
-In case of two arrows pointing towards the middle value, the middle value is
-optimal in the sense of representing the most balanced classes.
-If only one arrow is present, it points from either the perfect negative association
-or independence endpoint in the direction of perfect positive association. Note
-that the endpoint is not necessarily achieved for perfect positive association.
-The arrow only serves as a general guideline in the direction of increasingly positive
-association.
-Finally, if no arrow is present, none of the above interpretations are available
-for the measure's value. There is more detail provided with the range itself,
-or for more information refer to literature of the specific measure.
+{p 4 7}The arrows in the ranges should be interpreted as general guidelines: {break}
+If two arrows point in the same direction, as in [-1 → 0 → 1], they indicate a progression from
+perfect negative association to independence and then to perfect positive association. {break}
+If arrows point toward a central value, as in [-1 → 0 ← 1], the midpoint is a neutral value,
+such as no dependence or no skill. {break}
+If only one arrow is shown, as in [0 → 1], the arrow points toward stronger positive association
+or better performance. {break}
+If no arrow is shown, as in [0 (never), 1 (always)], none of these directional interpretations apply
+to the measure's range.
 {p_end}
-{p 4 7}In case of two categories, the Value column refers to the value of the metric for the positive category.
+{p 4 7}The theoretical range of a measure may depend on the table dimensions and sample size.
+Consequently, nominal endpoints may not always be attainable, even when marginal totals are not fixed.
+{p_end}
+{p 4 7}In case of two categories and no class-specific measures being printed,
+the Value column refers to the value of the metric for the positive category.
 Overall sample values and category-specific values are printed as available.
-The macro average is an arithmetic average over metric values across cateogories.
+The macro average is an arithmetic average over metric values across categories.
 The weighted average is the average of category-specific values weighted by the observed counts of each category.
 Dots '.' signify any metrics that cannot be computed for the given data.{p_end}
 {p 4 7}Some of the metrics' and probability scores' names may end in (ORD). 
@@ -210,52 +238,70 @@ and 'au' refers to an approximate upper bound (when the exact upper bound is not
 This table can be found in the 'Association measures' sheet.
 In case probabilities are provided (using either {opt predict} or {opt probs:(varlist)}), 
 a selection of probabilistic scores can be found in the 'Probabilistic scores' sheet.
-Numerical values in the the output file are displayed using 4-digit rounding for ease of use. The underlying values
+Numerical values in the output file are displayed using 4-digit rounding for ease of use. The underlying values
 are the raw values computed within Stata, with no precision loss due to rounding.{p_end}
  
 {marker DefaultPrintOuts}
 {title:Default print-outs}
 
 {pstd} If there are two categories present:{p_end}
-       1. Accuracy
-       11. Baroni-Urbani-Buser 1
-       42. Clement
-       56. Dennis
-       84. G-mean
-       130. Goodman-Kruskal tau
-       136. Grier B bias
-       139. Harris-Lahey
-       140. Hawkins-Dotson
-       190. Pearson contingency C
-       197. Pollaczek-Geiringer (ORD)
-       211. Schrank
-       253. Yao-Liu two-way support
-       254. Yao-Liu two-way support variation
-       255. Yates chi^2
+	1. Accuracy
+	2. Added value
+	9. Balanced accuracy
+	42. Clayton skill score
+	64. Doolittle raw accuracy
+	65. Driver-Kroeber similarity index
+	119. Gilbert index
+	120. Gilbert skill score
+	125. G-mean
+	132. Goodman-Kruskal lambda coefficient
+	134. Goodman-Kruskal tau coefficient
+	146. Heidke skill score
+	148. Hit rate
+	163. Krippendorff alpha coefficient
+	205. Peirce skill score
+	212. Precision
+	234. Scott pi coefficient
+	241. Sokal-Sneath similarity coefficient #3
+	256. Theil uncertainty coefficient U
+	280. Yule phi correlation coefficient
+	281. Yule Q coefficient
+	282. Yule Y coefficient
+	If probabilistic scores are available:
+	P1 Brier score
+	P2 Logarithmic score
+	P6 Spherical score
+	P7 Accuracy rate
+	P8 Average precision
+	P12 Macro-average mean probability rate
+	P14 Mean probability rate
+	P15 Normalized area under CAP
+	P16 Normalized area under ROC
+
 
 {pstd} If there are more than two categories present:{p_end}
-       1. Accuracy
-       11. Baroni-Urbani-Buser 1
-       42. Clement
-       54. Cressie-Read
-       129. Goodman-Kruskal lambda r
-       131. Goodman-Kruskal weighted lambda
-       136. Grier B bias
-       139. Harris-Lahey
-       190. Pearson contingency C
-       211. Schrank
-       216. Simple matching
-       232. Szymkiewicz-Simpson
-       235. Tonnies (ORD)
+	1. Accuracy
+	9. Balanced accuracy
+	42. Clayton skill score
+	44. Cohen kappa coefficient
+	52. Cramer concordance coefficient
+	132. Goodman-Kruskal lambda coefficient
+	134. Goodman-Kruskal tau coefficient
+	138. Gorodkin Rk coefficient
+	163. Krippendorff alpha coefficient
+	205. Peirce skill score
+	234. Scott pi coefficient
+	241. Sokal-Sneath similarity coefficient #3
+	256. Theil uncertainty coefficient U
+	260. Tschuprow T coefficient
+	If probabilistic scores are available:
+	P1 Brier score
+	P2 Logarithmic score
+	P6 Spherical score
+	P12 Macro-average mean probability rate
+	P14 Mean probability rate
+	P17 2AFC score #1
 
-{pstd} If probabilistic scores are available:{p_end}
-       P1. Brier score
-       P2. Logarithmic score
-       P3. Power score
-       P7. Area under ROC curve
-       P13. Macro average mean probability rate
-       P15. Mean probability rate
-       P18. Zero-one score
 
 {marker ProbScoreTable}
 {title:Probabilistic Score Table}
@@ -287,18 +333,18 @@ Diagnostic measures for probabilistic forecasts:
 {synoptset 5 tabbed}{...}
 {synopthdr:Token}
 {synoptline}
-{synopt:{opt P7}}Area under ROC curve (AUC) {p_end}
-{synopt:{opt P8}}Area under CAP curve (AUGC) {p_end}
-{synopt:{opt P9}}Average precision (AP) {p_end}
-{synopt:{opt P10}}Expected calibration error (ECE) {p_end}
-{synopt:{opt P11}}Gain at k {p_end}
-{synopt:{opt P12}}Lift at k {p_end}
-{synopt:{opt P13}}Macro average mean probability rate (MAPR) {p_end}
-{synopt:{opt P14}}Maximum calibration error (MCE) {p_end}
-{synopt:{opt P15}}Mean probability rate (MPR) {p_end}
-{synopt:{opt P16}}Two-alternative forced choice score (2AFC) #1 {p_end}
-{synopt:{opt P17}}Two-alternative forced choice score (2AFC) #2 {p_end}
-{synopt:{opt P18}}Zero-one score {p_end}
+{synopt:{opt P7}}Accuracy rate{p_end}
+{synopt:{opt P8}}Average precision (AP){p_end}
+{synopt:{opt P9}}Expected calibration error (ECE){p_end}
+{synopt:{opt P10}}Gain at k{p_end}
+{synopt:{opt P11}}Lift at k{p_end}
+{synopt:{opt P12}}Macro-average mean probability rate (MAPR){p_end}
+{synopt:{opt P13}}Maximum calibration error (MCE){p_end}
+{synopt:{opt P14}}Mean probability rate (MPR){p_end}
+{synopt:{opt P15}}Normalized area under cumulative accuracy profile (CAP){p_end}
+{synopt:{opt P16}}Normalized area under receiver operating characteristic (ROC) curve{p_end}
+{synopt:{opt P17}}Two-alternative forced choice (2AFC) score #1{p_end}
+{synopt:{opt P18}}Two-alternative forced choice (2AFC) score #2 [ORD]{p_end}
 {synoptline}
 
 {marker MetricReferenceTable}
@@ -306,7 +352,7 @@ Diagnostic measures for probabilistic forecasts:
 
 {pstd}
 For the option {opt metrics:(string)}, the numeric indices should be used.
-The table below lists all 259 available metrics with their corresponding index numbers.
+The table below lists all 283 available metrics with their corresponding index numbers.
 The metric names printed in the Results window and Excel are usually
 shortened for readability and to save space.
 {p_end}
@@ -317,262 +363,286 @@ shortened for readability and to save space.
 {synopt:{opt 1}}Accuracy{p_end}
 {synopt:{opt 2}}Added value{p_end}
 {synopt:{opt 3}}Adjusted noise-to-signal ratio{p_end}
-{synopt:{opt 4}}Alroy measure{p_end}
-{synopt:{opt 5}}AMPLE index{p_end}
-{synopt:{opt 6}}Anderberg coefficient{p_end}
-{synopt:{opt 7}}Anderberg D similarity coefficient{p_end}
-{synopt:{opt 8}}Appleman index{p_end}
-{synopt:{opt 9}}Atkinson similarity{p_end}
-{synopt:{opt 10}}Balanced accuracy{p_end}
-{synopt:{opt 11}}Baroni-Urbani-Buser coefficient #1{p_end}
-{synopt:{opt 12}}Baroni-Urbani-Buser coefficient #2{p_end}
+{synopt:{opt 4}}Alroy coefficient{p_end}
+{synopt:{opt 5}}Anderberg coefficient{p_end}
+{synopt:{opt 6}}Anderberg D{p_end}
+{synopt:{opt 7}}Appleman index{p_end}
+{synopt:{opt 8}}Atkinson similarity{p_end}
+{synopt:{opt 9}}Balanced accuracy{p_end}
+{synopt:{opt 10}}Balanced error rate{p_end}
+{synopt:{opt 11}}Baroni-Urbani-Buser #1{p_end}
+{synopt:{opt 12}}Baroni-Urbani-Buser #2{p_end}
 {synopt:{opt 13}}Base rate{p_end}
-{synopt:{opt 14}}Baulieu dissimilarity coefficient #13{p_end}
-{synopt:{opt 15}}Baulieu dissimilarity coefficient #22{p_end}
-{synopt:{opt 16}}Baulieu dissimilarity coefficient #23{p_end}
-{synopt:{opt 17}}Baulieu dissimilarity coefficient #24{p_end}
-{synopt:{opt 18}}Baulieu dissimilarity coefficient #25{p_end}
-{synopt:{opt 19}}Baulieu dissimilarity coefficient #27{p_end}
-{synopt:{opt 20}}Baulieu dissimilarity coefficient #28{p_end}
-{synopt:{opt 21}}Baulieu dissimilarity coefficient #29{p_end}
-{synopt:{opt 22}}Baulieu dissimilarity coefficient #30{p_end}
-{synopt:{opt 23}}Baulieu dissimilarity coefficient #31{p_end}
-{synopt:{opt 24}}Baulieu dissimilarity coefficient #32{p_end}
-{synopt:{opt 25}}Baulieu dissimilarity coefficient #33{p_end}
-{synopt:{opt 26}}Benini phi/phi_max correlation coefficient #1{p_end}
-{synopt:{opt 27}}Benini phi/phi_max correlation coefficient #2{p_end}
-{synopt:{opt 28}}Benini correlation coefficient #3{p_end}
-{synopt:{opt 29}}Benini correlation coefficient #4{p_end}
-{synopt:{opt 30}}Bennet S coefficient{p_end}
-{synopt:{opt 31}}Berger-Parker dominance index{p_end}
-{synopt:{opt 32}}Bias index{p_end}
-{synopt:{opt 33}}Blaheta-Johnson unigram subtuples measure{p_end}
-{synopt:{opt 34}}Braun-Blanquet similarity index{p_end}
-{synopt:{opt 35}}Bray-Curtis dissimilarity index{p_end}
-{synopt:{opt 36}}Brin conviction coefficient{p_end}
-{synopt:{opt 37}}Causal confidence{p_end}
-{synopt:{opt 38}}Causal confirmed confidence{p_end}
-{synopt:{opt 39}}Causal confirm{p_end}
-{synopt:{opt 40}}Chord distance metric{p_end}
-{synopt:{opt 41}}Clayton skill score{p_end}
-{synopt:{opt 42}}Clement reliability coefficient{p_end}
-{synopt:{opt 43}}Cohen kappa coefficient{p_end}
-{synopt:{opt 44}}Cole C5 correlation coefficient{p_end}
-{synopt:{opt 45}}Collective strength index{p_end}
-{synopt:{opt 46}}Confirm{p_end}
-{synopt:{opt 47}}Consonni-Todeschini similarity index #1{p_end}
-{synopt:{opt 48}}Consonni-Todeschini similarity index #2{p_end}
-{synopt:{opt 49}}Consonni-Todeschini similarity index #3{p_end}
-{synopt:{opt 50}}Consonni-Todeschini similarity index #4{p_end}
-{synopt:{opt 51}}Consonni-Todeschini similarity index #5{p_end}
-{synopt:{opt 52}}Coverage{p_end}
-{synopt:{opt 53}}Cramér concordance coefficient{p_end}
-{synopt:{opt 54}}Cressie-Read power divergence statistic{p_end}
-{synopt:{opt 55}}Czekanowski index{p_end}
-{synopt:{opt 56}}Dennis z-score{p_end}
-{synopt:{opt 57}}Dependency measure{p_end}
+{synopt:{opt 14}}Batagelj-Bren distance Q_0{p_end}
+{synopt:{opt 15}}Baulieu dissimilarity #13{p_end}
+{synopt:{opt 16}}Baulieu dissimilarity #22 (kappa=2.7183){p_end}
+{synopt:{opt 17}}Baulieu dissimilarity #23{p_end}
+{synopt:{opt 18}}Baulieu dissimilarity #24{p_end}
+{synopt:{opt 19}}Baulieu dissimilarity #25{p_end}
+{synopt:{opt 20}}Baulieu dissimilarity #27{p_end}
+{synopt:{opt 21}}Baulieu dissimilarity #28{p_end}
+{synopt:{opt 22}}Baulieu dissimilarity #29{p_end}
+{synopt:{opt 23}}Baulieu dissimilarity #30{p_end}
+{synopt:{opt 24}}Baulieu dissimilarity #31{p_end}
+{synopt:{opt 25}}Baulieu dissimilarity #32{p_end}
+{synopt:{opt 26}}Baulieu dissimilarity #33{p_end}
+{synopt:{opt 27}}Benini coefficient #1{p_end}
+{synopt:{opt 28}}Benini coefficient #2{p_end}
+{synopt:{opt 29}}Benini coefficient #3{p_end}
+{synopt:{opt 30}}Benini coefficient #4{p_end}
+{synopt:{opt 31}}Bennet S coefficient{p_end}
+{synopt:{opt 32}}Berger-Parker index{p_end}
+{synopt:{opt 33}}Bias index{p_end}
+{synopt:{opt 34}}Blaheta-Johnson unigram subtuples{p_end}
+{synopt:{opt 35}}Braun-Blanquet similarity index{p_end}
+{synopt:{opt 36}}Bray-Curtis dissimilarity index{p_end}
+{synopt:{opt 37}}Brin conviction coefficient{p_end}
+{synopt:{opt 38}}Causal confidence{p_end}
+{synopt:{opt 39}}Causal confirmed confidence{p_end}
+{synopt:{opt 40}}Causal confirm{p_end}
+{synopt:{opt 41}}Chord distance metric{p_end}
+{synopt:{opt 42}}Clayton skill score{p_end}
+{synopt:{opt 43}}Clement reliability coefficient{p_end}
+{synopt:{opt 44}}Cohen kappa coefficient{p_end}
+{synopt:{opt 45}}Cole C_5 correlation coefficient{p_end}
+{synopt:{opt 46}}Collective strength index{p_end}
+{synopt:{opt 47}}Consonni-Todeschini index #1{p_end}
+{synopt:{opt 48}}Consonni-Todeschini index #2{p_end}
+{synopt:{opt 49}}Consonni-Todeschini index #3{p_end}
+{synopt:{opt 50}}Consonni-Todeschini index #4{p_end}
+{synopt:{opt 51}}Consonni-Todeschini index #5{p_end}
+{synopt:{opt 52}}Cramer concordance coefficient{p_end}
+{synopt:{opt 53}}Cressie-Read power divergence (lambda=.6667){p_end}
+{synopt:{opt 54}}Czekanowski index{p_end}
+{synopt:{opt 55}}Dennis z-score{p_end}
+{synopt:{opt 56}}Dependency measure{p_end}
+{synopt:{opt 57}}Descriptive confirm{p_end}
 {synopt:{opt 58}}Digby correlation coefficient{p_end}
-{synopt:{opt 59}}Discrimination d distance{p_end}
-{synopt:{opt 60}}Dispersion index{p_end}
+{synopt:{opt 59}}Discriminant power{p_end}
+{synopt:{opt 60}}Discrimination d' distance{p_end}
 {synopt:{opt 61}}Dominance index{p_end}
 {synopt:{opt 62}}Donaldson bias index{p_end}
 {synopt:{opt 63}}Doolittle association ratio{p_end}
 {synopt:{opt 64}}Doolittle raw accuracy{p_end}
 {synopt:{opt 65}}Driver-Kroeber similarity index{p_end}
-{synopt:{opt 66}}Example and counterexample rate{p_end}
-{synopt:{opt 67}}Extremal dependence index{p_end}
-{synopt:{opt 68}}Extreme dependency index{p_end}
-{synopt:{opt 69}}Eyraud index{p_end}
-{synopt:{opt 70}}Fager-McGowan similarity index #1{p_end}
-{synopt:{opt 71}}Fager-McGowan similarity index #2{p_end}
-{synopt:{opt 72}}Faith similarity index{p_end}
-{synopt:{opt 73}}False alarm ratio{p_end}
-{synopt:{opt 74}}False negative rate{p_end}
-{synopt:{opt 75}}F_beta-score{p_end}
-{synopt:{opt 76}}Fisher exact test statistic{p_end}
-{synopt:{opt 77}}Fleiss kappa coefficient{p_end}
-{synopt:{opt 78}}Fleiss-Levin-Paik agreement index{p_end}
-{synopt:{opt 79}}Forbes coefficient #1{p_end}
-{synopt:{opt 80}}Forbes coefficient #2{p_end}
-{synopt:{opt 81}}Fossum index{p_end}
-{synopt:{opt 82}}Freeman-Tukey statistic{p_end}
-{synopt:{opt 83}}F-score adjusted{p_end}
-{synopt:{opt 84}}G-mean{p_end}
-{synopt:{opt 85}}G-mean adjusted{p_end}
-{synopt:{opt 86}}Galton agreement coefficient{p_end}
-{synopt:{opt 87}}Ganascia coefficient{p_end}
-{synopt:{opt 88}}Generalized Fleiss correlation coefficient (arithmetic) #2{p_end}
-{synopt:{opt 89}}Generalized Fleiss correlation coefficient (arithmetic) #3{p_end}
-{synopt:{opt 90}}Generalized Fleiss correlation coefficient (contraharmonic) #1{p_end}
-{synopt:{opt 91}}Generalized Fleiss correlation coefficient (contraharmonic) #2{p_end}
-{synopt:{opt 92}}Generalized Fleiss correlation coefficient (contraharmonic) #3{p_end}
-{synopt:{opt 93}}Generalized Fleiss correlation coefficient (harmonic) #1{p_end}
-{synopt:{opt 94}}Generalized Fleiss correlation coefficient (harmonic) #2{p_end}
-{synopt:{opt 95}}Generalized Fleiss correlation coefficient (harmonic) #3{p_end}
-{synopt:{opt 96}}Generalized Fleiss correlation coefficient (Heronian) #1{p_end}
-{synopt:{opt 97}}Generalized Fleiss correlation coefficient (Heronian) #2{p_end}
-{synopt:{opt 98}}Generalized Fleiss correlation coefficient (Heronian) #3{p_end}
-{synopt:{opt 99}}Generalized Fleiss correlation coefficient (Hölder) #1{p_end}
-{synopt:{opt 100}}Generalized Fleiss correlation coefficient (Hölder) #2{p_end}
-{synopt:{opt 101}}Generalized Fleiss correlation coefficient (Hölder) #3{p_end}
-{synopt:{opt 102}}Generalized Fleiss correlation coefficient (identric) #1{p_end}
-{synopt:{opt 103}}Generalized Fleiss correlation coefficient (identric) #2{p_end}
-{synopt:{opt 104}}Generalized Fleiss correlation coefficient (identric) #3{p_end}
-{synopt:{opt 105}}Generalized Fleiss correlation coefficient (Lehmer) #1{p_end}
-{synopt:{opt 106}}Generalized Fleiss correlation coefficient (Lehmer) #2{p_end}
-{synopt:{opt 107}}Generalized Fleiss correlation coefficient (Lehmer) #3{p_end}
-{synopt:{opt 108}}Generalized Fleiss correlation coefficient (logarithmic) #1{p_end}
-{synopt:{opt 109}}Generalized Fleiss correlation coefficient (logarithmic) #2{p_end}
-{synopt:{opt 110}}Generalized Fleiss correlation coefficient (logarithmic) #3{p_end}
-{synopt:{opt 111}}Generalized Fleiss correlation coefficient (quadratic) #1{p_end}
-{synopt:{opt 112}}Generalized Fleiss correlation coefficient (quadratic) #2{p_end}
-{synopt:{opt 113}}Generalized Fleiss correlation coefficient (quadratic) #3{p_end}
-{synopt:{opt 114}}Generalized Fleiss correlation coefficient (Seiffert) #1{p_end}
-{synopt:{opt 115}}Generalized Fleiss correlation coefficient (Seiffert) #2{p_end}
-{synopt:{opt 116}}Generalized Fleiss correlation coefficient (Seiffert) #3{p_end}
-{synopt:{opt 117}}Gerrity skill score{p_end}
-{synopt:{opt 118}}Gilbert index{p_end}
-{synopt:{opt 119}}Gilbert skill score{p_end}
-{synopt:{opt 120}}Gilbert-Wells index{p_end}
-{synopt:{opt 121}}Gini coefficient #1{p_end}
-{synopt:{opt 122}}Gini coefficient #2{p_end}
-{synopt:{opt 123}}Goodall index{p_end}
-{synopt:{opt 124}}Goodman concomitance coefficient{p_end}
-{synopt:{opt 125}}Goodman-Kruskal coefficient #1{p_end}
-{synopt:{opt 126}}Goodman-Kruskal coefficient #2{p_end}
-{synopt:{opt 127}}Goodman-Kruskal gamma coefficient{p_end}
-{synopt:{opt 128}}Goodman-Kruskal lambda coefficient{p_end}
-{synopt:{opt 129}}Goodman-Kruskal lambda_r coefficient{p_end}
-{synopt:{opt 130}}Goodman-Kruskal tau coefficient{p_end}
-{synopt:{opt 131}}Goodman-Kruskal weighted lambda coefficient{p_end}
-{synopt:{opt 132}}Goodman weighted association index{p_end}
-{synopt:{opt 133}}Gorodkin R_K correlation coefficient{p_end}
-{synopt:{opt 134}}Gower-Legendre S_theta index{p_end}
-{synopt:{opt 135}}Gray-Orlowska interestingness weighting dependency GOI - D index{p_end}
-{synopt:{opt 136}}Grier B bias index{p_end}
-{synopt:{opt 137}}Guttman coefficient{p_end}
-{synopt:{opt 138}}Hamann coefficient{p_end}
-{synopt:{opt 139}}Harris-Lahey index{p_end}
-{synopt:{opt 140}}Hawkins-Dotson coefficient{p_end}
-{synopt:{opt 141}}Heidke skill score{p_end}
-{synopt:{opt 142}}Hit rate{p_end}
-{synopt:{opt 143}}Höffding coefficient #1{p_end}
-{synopt:{opt 144}}Höffding coefficient #2{p_end}
-{synopt:{opt 145}}Hubert-Arabie adjusted Rand index{p_end}
-{synopt:{opt 146}}Index of balanced accuracy IBA{p_end}
-{synopt:{opt 147}}Information quality ratio{p_end}
-{synopt:{opt 148}}J-measure{p_end}
-{synopt:{opt 149}}Kendall tau_a correlation coefficient{p_end}
-{synopt:{opt 150}}Kendall tau_b correlation coefficient with an adjustment for ties{p_end}
-{synopt:{opt 151}}Kitamura-Matsumoto index{p_end}
-{synopt:{opt 152}}Klösgen measure{p_end}
-{synopt:{opt 153}}Köppen index{p_end}
-{synopt:{opt 154}}Krippendorff alpha coefficient{p_end}
-{synopt:{opt 155}}Kuder-Richardson coefficient{p_end}
-{synopt:{opt 156}}Kuhns coefficient #1{p_end}
-{synopt:{opt 157}}Kuhns coefficient #2{p_end}
-{synopt:{opt 158}}Kulczyński index #1{p_end}
-{synopt:{opt 159}}Kulczyński index #2{p_end}
-{synopt:{opt 160}}Lakshmanamurti Lambda coefficient{p_end}
-{synopt:{opt 161}}Laplace correction{p_end}
-{synopt:{opt 162}}Least contradiction index{p_end}
-{synopt:{opt 163}}Lerman implication index{p_end}
-{synopt:{opt 164}}Leverage{p_end}
-{synopt:{opt 165}}Log Forbes measure{p_end}
-{synopt:{opt 166}}Log frequency biased index{p_end}
-{synopt:{opt 167}}Log likelihood ratio statistic{p_end}
-{synopt:{opt 168}}Log odds ratio amended statistic{p_end}
-{synopt:{opt 169}}Log odds ratio statistic{p_end}
-{synopt:{opt 170}}Mak rho coefficient{p_end}
-{synopt:{opt 171}}Maron-Kuhns coefficient{p_end}
-{synopt:{opt 172}}Maxwell B coefficient{p_end}
-{synopt:{opt 173}}Maxwell-Pilliner coefficient{p_end}
-{synopt:{opt 174}}McConnaughey coefficient{p_end}
-{synopt:{opt 175}}Merton correct prediction CP index{p_end}
-{synopt:{opt 176}}Michael index{p_end}
-{synopt:{opt 177}}Minimum discrimination information MDI statistic{p_end}
-{synopt:{opt 178}}Mountford index{p_end}
-{synopt:{opt 179}}Mutual dependency measure{p_end}
-{synopt:{opt 180}}Mutual information statistic{p_end}
-{synopt:{opt 181}}Negative likelihood ratio statistic{p_end}
-{synopt:{opt 182}}Neyman modified chi-squared statistic{p_end}
-{synopt:{opt 183}}Normalized Google distance NGD metric{p_end}
-{synopt:{opt 184}}Odds ratio{p_end}
-{synopt:{opt 185}}Odds ratio amended{p_end}
-{synopt:{opt 186}}Optimized precision{p_end}
-{synopt:{opt 187}}P4-score{p_end}
-{synopt:{opt 188}}Pattern difference{p_end}
-{synopt:{opt 189}}Pearson chi-squared statistic{p_end}
-{synopt:{opt 190}}Pearson contingency C coefficient{p_end}
-{synopt:{opt 191}}Pearson-Heron correlation coefficient{p_end}
-{synopt:{opt 192}}Pearson phi coefficient{p_end}
-{synopt:{opt 193}}Peirce skill score{p_end}
-{synopt:{opt 194}}Pietra statistic{p_end}
-{synopt:{opt 195}}Poisson-Stirling index{p_end}
-{synopt:{opt 196}}Pollack-Norman A sensitivity statistic{p_end}
-{synopt:{opt 197}}Pollaczek-Geiringer correlation coefficient{p_end}
-{synopt:{opt 198}}Positive likelihood ratio statistic{p_end}
-{synopt:{opt 199}}Positive matching coefficient{p_end}
-{synopt:{opt 200}}Precision{p_end}
-{synopt:{opt 201}}Prevalence threshold index{p_end}
-{synopt:{opt 202}}Putative causal dependency index{p_end}
-{synopt:{opt 203}}Relative risk ratio{p_end}
-{synopt:{opt 204}}Relative Quetelet index{p_end}
-{synopt:{opt 205}}Rogers-Tanimoto coefficient{p_end}
-{synopt:{opt 206}}Rogot-Goldberg index{p_end}
-{synopt:{opt 207}}Rousseau index{p_end}
-{synopt:{opt 208}}Roux index #1{p_end}
-{synopt:{opt 209}}Roux index #2{p_end}
-{synopt:{opt 210}}Russell-Rao coefficient{p_end}
-{synopt:{opt 211}}Schrank index{p_end}
-{synopt:{opt 212}}Scott coefficient{p_end}
-{synopt:{opt 213}}Scott pi coefficient{p_end}
-{synopt:{opt 214}}Sebag-Schoenauer index{p_end}
-{synopt:{opt 215}}Shape difference measure{p_end}
-{synopt:{opt 216}}Simple matching coefficient{p_end}
-{synopt:{opt 217}}Size difference{p_end}
-{synopt:{opt 218}}Sokal-Sneath similarity coefficient #1{p_end}
-{synopt:{opt 219}}Sokal-Sneath similarity coefficient #2{p_end}
-{synopt:{opt 220}}Sokal-Sneath similarity coefficient #3{p_end}
-{synopt:{opt 221}}Sokal-Sneath similarity coefficient #4{p_end}
-{synopt:{opt 222}}Sokal-Sneath similarity coefficient #5{p_end}
-{synopt:{opt 223}}Sokal-Sneath similarity coefficient #6{p_end}
-{synopt:{opt 224}}Somers d statistic{p_end}
-{synopt:{opt 225}}Sørensen similarity coefficient{p_end}
-{synopt:{opt 226}}Standard deviation agreement SDAI index{p_end}
-{synopt:{opt 227}}Steffensen Psi-squared coefficient{p_end}
-{synopt:{opt 228}}Steffensen omega coefficient{p_end}
-{synopt:{opt 229}}Stiles coefficient{p_end}
-{synopt:{opt 230}}Stuart tau_c correlation coefficient{p_end}
-{synopt:{opt 231}}Success index{p_end}
-{synopt:{opt 232}}Szymkiewicz-Simpson similarity coefficient{p_end}
-{synopt:{opt 233}}Tarantula metric{p_end}
-{synopt:{opt 234}}Theil index{p_end}
-{synopt:{opt 235}}Tönnies coefficient{p_end}
-{synopt:{opt 236}}Tschuprow T bias-corrected coefficient{p_end}
-{synopt:{opt 237}}Tschuprow T coefficient{p_end}
-{synopt:{opt 238}}t-score{p_end}
-{synopt:{opt 239}}Tulloss R cost index{p_end}
-{synopt:{opt 240}}Tulloss S cost index{p_end}
-{synopt:{opt 241}}Tulloss T combined costs index{p_end}
-{synopt:{opt 242}}Tulloss U cost index{p_end}
-{synopt:{opt 243}}Tversky index{p_end}
-{synopt:{opt 244}}Two-alternative forced choice 2AFC statistic #1{p_end}
-{synopt:{opt 245}}Two-alternative forced choice 2AFC statistic #2{p_end}
-{synopt:{opt 246}}Upholt S coefficient{p_end}
-{synopt:{opt 247}}Van der Maarel coefficient{p_end}
-{synopt:{opt 248}}Variance dissimilarity measure{p_end}
-{synopt:{opt 249}}Warrens coefficient{p_end}
-{synopt:{opt 250}}Weighted kappa coefficient{p_end}
-{synopt:{opt 251}}Woodcock dissimilarity coefficient{p_end}
-{synopt:{opt 252}}Yao-Liu one-way support measure{p_end}
-{synopt:{opt 253}}Yao-Liu two-way support measure{p_end}
-{synopt:{opt 254}}Yao-Liu two-way support variation{p_end}
-{synopt:{opt 255}}Yates chi-squared statistic{p_end}
-{synopt:{opt 256}}Yule phi correlation coefficient{p_end}
-{synopt:{opt 257}}Yule Q coefficient{p_end}
-{synopt:{opt 258}}Yule Y coefficient{p_end}
-{synopt:{opt 259}}Zhang coefficient{p_end}
+{synopt:{opt 66}}Error rate{p_end}
+{synopt:{opt 67}}Example and counterexample{p_end}
+{synopt:{opt 68}}Extremal dependence index{p_end}
+{synopt:{opt 69}}Extreme dependency index{p_end}
+{synopt:{opt 70}}Eyraud index{p_end}
+{synopt:{opt 71}}Fager-McGowan index #1{p_end}
+{synopt:{opt 72}}Fager-McGowan index #2{p_end}
+{synopt:{opt 73}}Faith similarity index{p_end}
+{synopt:{opt 74}}False alarm ratio{p_end}
+{synopt:{opt 75}}False negative rate{p_end}
+{synopt:{opt 76}}False omission rate{p_end}
+{synopt:{opt 77}}False positive rate{p_end}
+{synopt:{opt 78}}Fbeta-score (beta=1.5){p_end}
+{synopt:{opt 79}}Fisher exact statistic{p_end}
+{synopt:{opt 80}}Fleiss-Levin-Paik agreement{p_end}
+{synopt:{opt 81}}Forbes coefficient #1{p_end}
+{synopt:{opt 82}}Forbes coefficient #2{p_end}
+{synopt:{opt 83}}Fossum index{p_end}
+{synopt:{opt 84}}Freeman-Tukey F^2 statistic{p_end}
+{synopt:{opt 85}}Freeman-Tukey F^2 statistic (asymptotic){p_end}
+{synopt:{opt 86}}F-score adjusted{p_end}
+{synopt:{opt 87}}Galton agreement coefficient{p_end}
+{synopt:{opt 88}}Ganascia coefficient{p_end}
+{synopt:{opt 89}}Gener. Fleiss coefficient (arithmetic) #2{p_end}
+{synopt:{opt 90}}Gener. Fleiss coefficient (contraharmonic) #1{p_end}
+{synopt:{opt 91}}Gener. Fleiss coefficient (contraharmonic) #2{p_end}
+{synopt:{opt 92}}Gener. Fleiss coefficient (contraharmonic) #3{p_end}
+{synopt:{opt 93}}Gener. Fleiss coefficient (harmonic) #1{p_end}
+{synopt:{opt 94}}Gener. Fleiss coefficient (harmonic) #2{p_end}
+{synopt:{opt 95}}Gener. Fleiss coefficient (harmonic) #3{p_end}
+{synopt:{opt 96}}Gener. Fleiss coefficient (Heronian) #1{p_end}
+{synopt:{opt 97}}Gener. Fleiss coefficient (Heronian) #2{p_end}
+{synopt:{opt 98}}Gener. Fleiss coefficient (Heronian) #3{p_end}
+{synopt:{opt 99}}Gener. Fleiss coefficient (Holder) #1 (p=.5){p_end}
+{synopt:{opt 100}}Gener. Fleiss coefficient (Holder) #2 (p=.5){p_end}
+{synopt:{opt 101}}Gener. Fleiss coefficient (Holder) #3 (p=.5){p_end}
+{synopt:{opt 102}}Gener. Fleiss coefficient (identric) #1{p_end}
+{synopt:{opt 103}}Gener. Fleiss coefficient (identric) #2{p_end}
+{synopt:{opt 104}}Gener. Fleiss coefficient (identric) #3{p_end}
+{synopt:{opt 105}}Gener. Fleiss coefficient (Lehmer) #1 (p=1.5){p_end}
+{synopt:{opt 106}}Gener. Fleiss coefficient (Lehmer) #2 (p=1.5){p_end}
+{synopt:{opt 107}}Gener. Fleiss coefficient (Lehmer) #3 (p=1.5){p_end}
+{synopt:{opt 108}}Gener. Fleiss coefficient (logarithmic) #1{p_end}
+{synopt:{opt 109}}Gener. Fleiss coefficient (logarithmic) #2{p_end}
+{synopt:{opt 110}}Gener. Fleiss coefficient (logarithmic) #3{p_end}
+{synopt:{opt 111}}Gener. Fleiss coefficient (quadratic) #1{p_end}
+{synopt:{opt 112}}Gener. Fleiss coefficient (quadratic) #2{p_end}
+{synopt:{opt 113}}Gener. Fleiss coefficient (quadratic) #3{p_end}
+{synopt:{opt 114}}Gener. Fleiss coefficient (Seiffert) #1{p_end}
+{synopt:{opt 115}}Gener. Fleiss coefficient (Seiffert) #2{p_end}
+{synopt:{opt 116}}Gener. Fleiss coefficient (Seiffert) #3{p_end}
+{synopt:{opt 117}}Gener. index of balanced accuracy (alpha=.5,M=125){p_end}
+{synopt:{opt 118}}Gerrity skill score [ORD]{p_end}
+{synopt:{opt 119}}Gilbert index{p_end}
+{synopt:{opt 120}}Gilbert skill score{p_end}
+{synopt:{opt 121}}Gilbert-Wells index{p_end}
+{synopt:{opt 122}}Gini coefficient #1{p_end}
+{synopt:{opt 123}}Gini coefficient #2{p_end}
+{synopt:{opt 124}}Gini impurity index{p_end}
+{synopt:{opt 125}}G-mean{p_end}
+{synopt:{opt 126}}G-mean adjusted{p_end}
+{synopt:{opt 127}}Goodall index{p_end}
+{synopt:{opt 128}}Goodman concomitance coefficient{p_end}
+{synopt:{opt 129}}Goodman-Kruskal coefficient #1{p_end}
+{synopt:{opt 130}}Goodman-Kruskal coefficient #2{p_end}
+{synopt:{opt 131}}Goodman-Kruskal gamma coefficient [ORD]{p_end}
+{synopt:{opt 132}}Goodman-Kruskal lambda coefficient{p_end}
+{synopt:{opt 133}}Goodman-Kruskal lambda_r coefficient{p_end}
+{synopt:{opt 134}}Goodman-Kruskal tau coefficient{p_end}
+{synopt:{opt 135}}Goodman-Kruskal weighted lambda{p_end}
+{synopt:{opt 136}}Goodman unweighted association{p_end}
+{synopt:{opt 137}}Goodman weighted association{p_end}
+{synopt:{opt 138}}Gorodkin Rk coefficient{p_end}
+{synopt:{opt 139}}Gower-Legendre Stheta index (theta=1.5){p_end}
+{synopt:{opt 140}}Gray-Orlowska index (alpha=2,beta=2){p_end}
+{synopt:{opt 141}}Grier B' bias index{p_end}
+{synopt:{opt 142}}Guttman coefficient{p_end}
+{synopt:{opt 143}}Hamann coefficient{p_end}
+{synopt:{opt 144}}Harris-Lahey index{p_end}
+{synopt:{opt 145}}Hawkins-Dotson coefficient{p_end}
+{synopt:{opt 146}}Heidke skill score{p_end}
+{synopt:{opt 147}}Hellinger distance{p_end}
+{synopt:{opt 148}}Hit rate{p_end}
+{synopt:{opt 149}}Hoffding coefficient #1{p_end}
+{synopt:{opt 150}}Hoffding coefficient #2{p_end}
+{synopt:{opt 151}}Hubert-Arabie adjusted Rand index{p_end}
+{synopt:{opt 152}}Index of dissimilarity{p_end}
+{synopt:{opt 153}}Information quality ratio{p_end}
+{synopt:{opt 154}}J-measure{p_end}
+{synopt:{opt 155}}Johnson{p_end}
+{synopt:{opt 156}}Kendall tau-a coefficient [ORD]{p_end}
+{synopt:{opt 157}}Kendall tau-b coefficient [ORD]{p_end}
+{synopt:{opt 158}}Kent-Foster #1 coefficient{p_end}
+{synopt:{opt 159}}Kent-Foster #2 coefficient{p_end}
+{synopt:{opt 160}}Kitamura-Matsumoto index{p_end}
+{synopt:{opt 161}}Klosgen measure{p_end}
+{synopt:{opt 162}}Koppen index [ORD]{p_end}
+{synopt:{opt 163}}Krippendorff alpha coefficient{p_end}
+{synopt:{opt 164}}Kuder-Richardson coefficient{p_end}
+{synopt:{opt 165}}Kuhns coefficient #1{p_end}
+{synopt:{opt 166}}Kuhns coefficient #2{p_end}
+{synopt:{opt 167}}Kulczynski index #1{p_end}
+{synopt:{opt 168}}Kulczynski index #2{p_end}
+{synopt:{opt 169}}Lakshmanamurti Lambda coefficient{p_end}
+{synopt:{opt 170}}Laplace correction{p_end}
+{synopt:{opt 171}}Least contradiction index{p_end}
+{synopt:{opt 172}}Lerman implication index{p_end}
+{synopt:{opt 173}}Leverage{p_end}
+{synopt:{opt 174}}Likelihood ratio G^2 statistic{p_end}
+{synopt:{opt 175}}Log Forbes measure{p_end}
+{synopt:{opt 176}}Log frequency biased index{p_end}
+{synopt:{opt 177}}Log odds ratio amended statistic{p_end}
+{synopt:{opt 178}}Log odds ratio statistic{p_end}
+{synopt:{opt 179}}Mak rho coefficient{p_end}
+{synopt:{opt 180}}Mantel-Haenszel statistic [ORD]{p_end}
+{synopt:{opt 181}}Maron-Kuhns coefficient{p_end}
+{synopt:{opt 182}}Maxwell B coefficient{p_end}
+{synopt:{opt 183}}Maxwell-Pilliner coefficient{p_end}
+{synopt:{opt 184}}McConnaughey coefficient{p_end}
+{synopt:{opt 185}}Merton correct prediction CP index{p_end}
+{synopt:{opt 186}}Michael index{p_end}
+{synopt:{opt 187}}Modified likelihood ratio statistics{p_end}
+{synopt:{opt 188}}Mountford index{p_end}
+{synopt:{opt 189}}Mueller-Schuessler IQV index{p_end}
+{synopt:{opt 190}}Mutual dependency{p_end}
+{synopt:{opt 191}}Mutual information statistic{p_end}
+{synopt:{opt 192}}Negative likelihood ratio statistic{p_end}
+{synopt:{opt 193}}Negative predicted value{p_end}
+{synopt:{opt 194}}Neyman modified chi^2 statistic{p_end}
+{synopt:{opt 195}}Normalized Google distance{p_end}
+{synopt:{opt 196}}Odds ratio{p_end}
+{synopt:{opt 197}}Odds ratio amended{p_end}
+{synopt:{opt 198}}Optimized precision{p_end}
+{synopt:{opt 199}}P4-score{p_end}
+{synopt:{opt 200}}Pattern difference{p_end}
+{synopt:{opt 201}}Pearson chi^2 statistic{p_end}
+{synopt:{opt 202}}Pearson contingency C coefficient{p_end}
+{synopt:{opt 203}}Pearson-Heron coefficient{p_end}
+{synopt:{opt 204}}Pearson phi coefficient{p_end}
+{synopt:{opt 205}}Peirce skill score{p_end}
+{synopt:{opt 206}}Pietra statistic{p_end}
+{synopt:{opt 207}}Poisson-Stirling index{p_end}
+{synopt:{opt 208}}Pollack-Norman A' sensitivity statistic{p_end}
+{synopt:{opt 209}}Pollaczek-Geiringer coefficient [ORD]{p_end}
+{synopt:{opt 210}}Positive likelihood ratio{p_end}
+{synopt:{opt 211}}Positive matching coefficient{p_end}
+{synopt:{opt 212}}Precision{p_end}
+{synopt:{opt 213}}Predicted negative rate{p_end}
+{synopt:{opt 214}}Predicted positive rate{p_end}
+{synopt:{opt 215}}Prevalence threshold index{p_end}
+{synopt:{opt 216}}Putative causal dependency index{p_end}
+{synopt:{opt 217}}Relative risk ratio{p_end}
+{synopt:{opt 218}}Relative Quetelet index{p_end}
+{synopt:{opt 219}}Renkonen similarity index{p_end}
+{synopt:{opt 220}}Replacement comp. (Jaccard){p_end}
+{synopt:{opt 221}}Replacement comp. (Sorensen){p_end}
+{synopt:{opt 222}}Replacement comp. (Braun-Blanquet){p_end}
+{synopt:{opt 223}}Richness difference (Jaccard){p_end}
+{synopt:{opt 224}}Richness difference (Sorensen){p_end}
+{synopt:{opt 225}}Richness difference (Braun-Blanquet){p_end}
+{synopt:{opt 226}}Rogers-Tanimoto coefficient{p_end}
+{synopt:{opt 227}}Rogot-Goldberg index{p_end}
+{synopt:{opt 228}}Root mean square difference{p_end}
+{synopt:{opt 229}}Rousseau index{p_end}
+{synopt:{opt 230}}Roux index #1{p_end}
+{synopt:{opt 231}}Roux index #2{p_end}
+{synopt:{opt 232}}Russell-Rao coefficient{p_end}
+{synopt:{opt 233}}Schrank index{p_end}
+{synopt:{opt 234}}Scott pi coefficient{p_end}
+{synopt:{opt 235}}Sebag-Schoenauer index{p_end}
+{synopt:{opt 236}}Shape difference{p_end}
+{synopt:{opt 237}}Simple matching coefficient{p_end}
+{synopt:{opt 238}}Size difference{p_end}
+{synopt:{opt 239}}Sokal-Sneath similarity coefficient #1{p_end}
+{synopt:{opt 240}}Sokal-Sneath similarity coefficient #2{p_end}
+{synopt:{opt 241}}Sokal-Sneath similarity coefficient #3{p_end}
+{synopt:{opt 242}}Sokal-Sneath similarity coefficient #4{p_end}
+{synopt:{opt 243}}Sokal-Sneath similarity coefficient #5{p_end}
+{synopt:{opt 244}}Sokal-Sneath similarity coefficient #6 (w=3){p_end}
+{synopt:{opt 245}}Somers d statistics [ORD]{p_end}
+{synopt:{opt 246}}Sorensen similarity coefficient{p_end}
+{synopt:{opt 247}}Specificity{p_end}
+{synopt:{opt 248}}Standard deviation agreement index{p_end}
+{synopt:{opt 249}}Steffensen psi^2 coefficient{p_end}
+{synopt:{opt 250}}Steffensen omega coefficient{p_end}
+{synopt:{opt 251}}Stiles coefficient{p_end}
+{synopt:{opt 252}}Stuart tau-c correlation [ORD]{p_end}
+{synopt:{opt 253}}Success index{p_end}
+{synopt:{opt 254}}Szymkiewicz-Simpson coefficient{p_end}
+{synopt:{opt 255}}Tarantula metric{p_end}
+{synopt:{opt 256}}Theil uncertainty coefficient U{p_end}
+{synopt:{opt 257}}Theil symmetric coefficient U{p_end}
+{synopt:{opt 258}}Tonnies coefficient [ORD]{p_end}
+{synopt:{opt 259}}Tschuprow T bias-corrected coefficient{p_end}
+{synopt:{opt 260}}Tschuprow T coefficient{p_end}
+{synopt:{opt 261}}t-score{p_end}
+{synopt:{opt 262}}Tulloss R cost index{p_end}
+{synopt:{opt 263}}Tulloss S cost index{p_end}
+{synopt:{opt 264}}Tulloss T combined costs index{p_end}
+{synopt:{opt 265}}Tulloss U cost index{p_end}
+{synopt:{opt 266}}Tversky index (alpha=.3333,beta=.3333){p_end}
+{synopt:{opt 267}}2AFC statistic #1{p_end}
+{synopt:{opt 268}}2AFC statistic #2 [ORD]{p_end}
+{synopt:{opt 269}}Upholt S coefficient{p_end}
+{synopt:{opt 270}}Van der Maarel coefficient{p_end}
+{synopt:{opt 271}}Van Rijsbergen E-measure (alpha=.5){p_end}
+{synopt:{opt 272}}Variance dissimilarity measure{p_end}
+{synopt:{opt 273}}Warrens coefficient{p_end}
+{synopt:{opt 274}}Weighted kappa coefficient (default weights){p_end}
+{synopt:{opt 275}}Woodcock similarity coefficient{p_end}
+{synopt:{opt 276}}Yao-Liu one-way support measure{p_end}
+{synopt:{opt 277}}Yao-Liu two-way support measure{p_end}
+{synopt:{opt 278}}Yao-Liu two-way support variation{p_end}
+{synopt:{opt 279}}Yates chi^2 statistics{p_end}
+{synopt:{opt 280}}Yule phi correlation coefficient{p_end}
+{synopt:{opt 281}}Yule Q coefficient{p_end}
+{synopt:{opt 282}}Yule Y coefficient{p_end}
+{synopt:{opt 283}}Zhang coefficient{p_end}
 {synoptline}
 
 

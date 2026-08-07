@@ -6,7 +6,8 @@ mata
 struct MetricInputs {
 	real matrix conf_mat, kweights_mat
 	real rowvector n_11, n_12, n_21, n_22, n_1_plus, n_plus_1, n_2_plus, n_plus_2
-	real scalar n, n_kk, fbeta, goalpha, gobeta, ibaalpha, sokal_w, gl_theta, baulieu_kappa, t_alpha, t_beta, fleiss_holder_p, fleiss_lehmer_p
+	real scalar n, n_kk, fbeta, goalpha, gobeta, ibaalpha, sokal_w, gl_theta, baulieu_kappa, t_alpha, t_beta, fleiss_holder_p, fleiss_lehmer_p, ealpha, ibam, ibam_type, crlambda, custom_kweights
+	pointer(function) scalar ibam_f
 }
 // KONRAD (27) ^
 
@@ -490,11 +491,15 @@ function cramer_concordance(struct MetricInputs scalar inp, type) {
 //47 (KONRAD)
 function cressie_read(struct MetricInputs scalar inp, type) {
 	if (type == "CTS") {
-		value = 0
-		for (i=1; i<=cols(inp.n_11); i++) {
-			for (j=1; j<=cols(inp.n_11); j++) {
-				value = value + 9/5 * inp.conf_mat[i,j] * ((inp.conf_mat[i,j] * inp.n / (inp.n_1_plus[i] * inp.n_plus_1[j]))^(2/3) - 1)
-			}
+		lambda = inp.crlambda
+		if (lambda == 0) {
+			value = likelihood_ratio(inp, "CTS")
+		}
+		else if (lambda == -1) {
+			value = mdis(inp, "CTS")
+		}
+		else {
+			value = 2 / (lambda * (lambda + 1)) * sum(inp.conf_mat :* ((inp.conf_mat :* inp.n :/ (inp.n_1_plus' * inp.n_plus_1)):^lambda :- 1))
 		}
 	}
 	return(value)
@@ -761,7 +766,7 @@ function forbes_2(struct MetricInputs scalar inp, type) {
 }
 
 //70 - Dragos 
-function freeman_tukey_statistic(struct MetricInputs scalar inp, type) {
+function freeman_tukey_statistic_as(struct MetricInputs scalar inp, type) {
     if(type == "CTS"){
         K = cols(inp.conf_mat)
 		
@@ -864,7 +869,7 @@ function gerrity_skill_score(struct MetricInputs scalar inp, type) {
 			wij[k,k] = 1/(K-1) * (sum(1 :/ Dr[1, 1..(k-1)]) + sum(Dr[1, k..(K-1)]))
 		}
 		wij[K,K] = 1/(K-1) * sum(1 :/ Dr[1, 1..(K-1)])
-		value = 1/(inp.n*inp.n) * sum(inp.conf_mat :* wij)
+		value = 1/(inp.n) * sum(inp.conf_mat :* wij)
 	}
 	return(value)
 }
@@ -1218,13 +1223,12 @@ function hoeffding_2(struct MetricInputs scalar inp, type) {
 //105 (KONRAD)
 function iba(struct MetricInputs scalar inp, type) {
 	if (type == "AS") {
-		value = (1 :+ inp.ibaalpha :* (inp.n_11 :/ inp.n_plus_1 :- inp.n_22 :/ inp.n_plus_2)) :* sqrt(inp.n_11 :/ inp.n_plus_1 :* inp.n_22 :/ inp.n_plus_2)
-	}
-	else if (type == "CS") {
-		value = sqrt(inp.n_11 :* inp.n_22 :/ (inp.n_plus_1 :* inp.n_plus_2))
-	}
-	else if (type == "TS") {
-		value = (1 :+ inp.ibaalpha :* (2 :* inp.n_11 :/ (inp.n_plus_1 :+ inp.n_1_plus) :- 2 :* inp.n_22 :/ (inp.n_plus_2 :+ inp.n_2_plus))) :* 2 :* sqrt(inp.n_11 :* inp.n_22) :/ (sqrt(inp.n_plus_1 :* inp.n_plus_2) :+ sqrt(inp.n_1_plus :* inp.n_2_plus))
+		M_value = (*inp.ibam_f)(inp, inp.ibam_type)
+		if (cols(M_value) < cols(inp.conf_mat)) {
+			errprintf("ERROR: [118] Generalized index of balanced accuracy requires M to refer to binary measure.\n")
+			exit(1)
+		}
+		value = (1 :+ inp.ibaalpha :* (inp.n_11 :/ inp.n_plus_1 :- inp.n_22 :/ inp.n_plus_2)) :* M_value
 	}
 	return(value)
 }
@@ -1545,15 +1549,9 @@ function lerman(struct MetricInputs scalar inp, type) {
 
 // 125	Dragos
 function leverage(struct MetricInputs scalar inp, type){
-    if(type == "AS") {
-        value = (inp.n_11 :/ inp.n_1_plus) :- ((inp.n_1_plus :* inp.n_plus_1) :/ (inp.n^2))
-    }
-    else if(type == "CTS") {
-        value = ((inp.n_11 :+ inp.n_22) :/ inp.n) :- ((inp.n_1_plus :* inp.n_plus_1 :+ inp.n_2_plus :* inp.n_plus_2) :/ (2*inp.n^2) )
-    }
-    else if(type == "TS") {
-        value = 2 :* inp.n_11 :/ (inp.n_1_plus :+ inp.n_plus_1) :- ((inp.n_1_plus :* inp.n_plus_1) :/ inp.n^2)
-    }
+    if (type == "CTS") {
+		value = (inp.n_11 :* inp.n_22 :- inp.n_12 :* inp.n_21) :/ (inp.n^2)
+	}
     return(value)
 }
 
@@ -2078,7 +2076,15 @@ function scott(struct MetricInputs scalar inp, type) {
 // 174	Dragos
 function scott_pi(struct MetricInputs scalar inp, type) {
 	if(type == "CTS") {
-		value = 1 :- 2 :* inp.n :* (inp.n_12 :+ inp.n_21) :/ ((2 :* inp.n_11 :+ inp.n_12 :+ inp.n_21) :* (2 :* inp.n_22 :+ inp.n_12 :+ inp.n_21))
+		K = cols(inp.n_11)
+        n_kk_sum = inp.n * sum(inp.n_11)
+        sum_2 = 0
+		for (k=1; k<=K; k++) {
+			sum_2 = sum_2 + ((inp.n_1_plus[k] + inp.n_plus_1[k]) )^2
+		}
+        num = n_kk_sum - (1/4 * sum_2)
+        den = inp.n^2 - (1/4 * sum_2)
+		value = num / den
 	}
 	return(value)
 }
@@ -2694,13 +2700,6 @@ function size_difference(struct MetricInputs scalar inp, type) {
 	return(value)
 }
 
-function dispersion(struct MetricInputs scalar inp, type) {
-	if (type == "CTS") {
-		value = (inp.n_11 :* inp.n_22 :- inp.n_12 :* inp.n_21) :/ (inp.n^2)
-	}
-	return(value)
-}
-
 function chord_distance(struct MetricInputs scalar inp, type) {
 	if (type == "TS") {
 		value = sqrt(2 :* (1 :- inp.n_11 :/ sqrt(inp.n_1_plus :* inp.n_plus_1)))
@@ -3283,6 +3282,225 @@ function hubert_arabie(struct MetricInputs scalar inp, type) {
 	}
 	return(value)
 }
+
+function neg_pred_value(struct MetricInputs scalar inp, type) {
+	if (type == "AS") {
+		value = inp.n_22 :/ inp.n_2_plus
+	}
+	return(value)
+}
+
+function discriminant_power(struct MetricInputs scalar inp, type) {
+	if (type == "CTS") {
+		value = sqrt(3) :/ pi() :* log(inp.n_11 :* inp.n_22 :/ (inp.n_12 :* inp.n_21))
+	}
+	return(value)
+}
+
+function goodman_unweighted_assc(struct MetricInputs scalar inp, type) {
+	if (type == "CTS") {
+		value = 1 :/ 4 :* log(inp.n_11 :* inp.n_22 :/ (inp.n_12 :* inp.n_21))
+	}
+	return(value)
+}
+
+function specificity(struct MetricInputs scalar inp, type) {
+	if (type == "AS") {
+		value = inp.n_22 :/ inp.n_plus_2
+	}
+	return(value)
+}
+
+function hellinger_distance(struct MetricInputs scalar inp, type) {
+	if (type == "TS") {
+		value = 2 :* sqrt(1 :- inp.n_11 :/ sqrt(inp.n_1_plus :* inp.n_plus_1))
+	}
+	return(value)
+}
+
+function johnson(struct MetricInputs scalar inp, type) {
+	if (type == "TS") {
+		value = inp.n_11 :/ inp.n_1_plus :+ inp.n_11 :/ inp.n_plus_1
+	}
+	return(value)
+}
+
+function predicted_negative_rate(struct MetricInputs scalar inp, type) {
+	if (type == "AS") {
+		value = inp.n_2_plus :/ inp.n
+	}
+	return(value)
+}
+
+function error_rate(struct MetricInputs scalar inp, type) {
+	if (type == "CTS") {
+		value = 1 - 1 / inp.n * sum(inp.n_11)
+	}
+	return(value)
+}
+
+function balanced_error_rate(struct MetricInputs scalar inp, type) {
+	if (type == "CS") {
+		value = 1 - 1 / cols(inp.conf_mat) * sum(inp.n_11 :/ inp.n_plus_1)
+	}
+	return(value)
+}
+
+function van_rijsbergen(struct MetricInputs scalar inp, type) {
+	if (type == "AS") {
+		a = inp.ealpha
+		value = (a :* inp.n_12 :+ (1 - a) :* inp.n_21) :/ (inp.n_11 :+ a :* inp.n_12 :+ (1 - a) :* inp.n_21)
+	}
+	return(value)
+}
+
+function replacement_comp_j(struct MetricInputs scalar inp, type) {
+	if (type == "TS") {
+		value = 2 :* colmin(inp.n_12 \ inp.n_21) :/ (inp.n_11 :+ inp.n_12 :+ inp.n_21)
+	}
+	return(value)
+}
+
+function replacement_comp_s(struct MetricInputs scalar inp, type) {
+	if (type == "TS") {
+		value = 2 :* colmin(inp.n_12 \ inp.n_21) :/ (2 :* inp.n_11 :+ inp.n_12 :+ inp.n_21)
+	}
+	return(value)
+}
+
+function replacement_comp_b(struct MetricInputs scalar inp, type) {
+	if (type == "TS") {
+		value = colmin(inp.n_12 \ inp.n_21) :/ (inp.n_11 :+ colmax(inp.n_12 \ inp.n_21))
+	}
+	return(value)
+}
+
+function richness_diff_j(struct MetricInputs scalar inp, type) {
+	if (type == "TS") {
+		value = abs(inp.n_12 :- inp.n_21) :/ (inp.n_11 :+ inp.n_12 :+ inp.n_21)
+	}
+	return(value)
+}
+
+function richness_diff_s(struct MetricInputs scalar inp, type) {
+	if (type == "TS") {
+		value = abs(inp.n_12 :- inp.n_21) :/ (2 :* inp.n_11 :+ inp.n_12 :+ inp.n_21)
+	}
+	return(value)
+}
+
+function richness_diff_b(struct MetricInputs scalar inp, type) {
+	if (type == "TS") {
+		value = abs(inp.n_12 :- inp.n_21) :/ (inp.n_11 :+ colmax(inp.n_12 \ inp.n_21))
+	}
+	return(value)
+}
+
+function batagelj_bren(struct MetricInputs scalar inp, type) {
+	if (type == "CTS") {
+		value = inp.n_12 :* inp.n_21 :/ (inp.n_11 :* inp.n_22)
+	}
+	return(value)
+}
+
+function theil_sym(struct MetricInputs scalar inp, type) {
+	if (type == "CTS") {
+		value = -2 * sum(inp.conf_mat :* log(inp.conf_mat :* inp.n :/ (inp.n_1_plus' * inp.n_plus_1))) / (sum(inp.n_1_plus :* log(inp.n_1_plus :/ inp.n)) + sum(inp.n_plus_1 :* log(inp.n_plus_1 :/ inp.n)))
+	}
+	return(value)
+}
+
+function root_mean_sq_diff(struct MetricInputs scalar inp, type) {
+	if (type == "CTS") {
+		value = sqrt((inp.n_12 :+ inp.n_21) :/ inp.n)
+	}
+	return(value)
+}
+
+function mantel_haenszel(struct MetricInputs scalar inp, type) {
+	if (type == "CTS") {
+		idx = (1..cols(inp.conf_mat))
+		num = (sum((idx' * idx) :* inp.conf_mat) -
+			   (sum(idx :* inp.n_1_plus) * sum(idx :* inp.n_plus_1)) / inp.n)^2
+		row_term = sum((idx:^2) :* inp.n_1_plus) -
+				   (sum(idx :* inp.n_1_plus)^2) / inp.n
+		col_term = sum((idx:^2) :* inp.n_plus_1) -
+				   (sum(idx :* inp.n_plus_1)^2) / inp.n
+		value = num / ((1 / (inp.n - 1)) * row_term * col_term)
+	}
+	return(value)
+}
+
+function mueller_schuessler(struct MetricInputs scalar inp, type) {
+	if (type == "AS") {
+		K = cols(inp.conf_mat)
+		value = K / (K - 1) * (1 - sum((inp.n_plus_1 :/ inp.n):^2))
+	}
+	return(value)
+}
+
+function gini_impurity(struct MetricInputs scalar inp, type) {
+	if (type == "AS") {
+		value = 1 - sum((inp.n_plus_1 :/ inp.n):^2)
+	}
+	return(value)
+}
+
+function renkonen(struct MetricInputs scalar inp, type) {
+	if (type == "AS") {
+		value = 1 :- abs(inp.n_11 :/ inp.n_1_plus :- inp.n_21 :/ inp.n_2_plus)
+	}
+	return(value)
+}
+
+function kent_foster_1(struct MetricInputs scalar inp, type) {
+	if (type == "TS") {
+		value = - inp.n_12 :* inp.n_21 :/ (inp.n_12 :* inp.n_1_plus :+ inp.n_21 :* inp.n_plus_1 :+ inp.n_12 :* inp.n_21)
+	}
+	return(value)
+}
+
+function kent_foster_2(struct MetricInputs scalar inp, type) {
+	if (type == "TS") {
+		value = - inp.n_12 :* inp.n_21 :/ (inp.n_12 :* inp.n_2_plus :+ inp.n_21 :* inp.n_plus_2 :+ inp.n_12 :* inp.n_21)
+	}
+	return(value)
+}
+
+function freeman_tukey_statistic(struct MetricInputs scalar inp, type) {
+	if (type == "CTS") {
+		value = 4 * sum((sqrt(inp.conf_mat) :+ sqrt(inp.conf_mat :+ 1) :- sqrt(4 :* (inp.n_1_plus' * inp.n_plus_1) :/ inp.n :+ 1)):^2)
+	}
+	return(value)
+}
+
+function false_omission_rate(struct MetricInputs scalar inp, type) {
+	if (type == "AS") {
+		value = inp.n_21 :/ inp.n_2_plus
+	}
+	return(value)
+}
+
+function false_positive_rate(struct MetricInputs scalar inp, type) {
+	if (type == "AS") {
+		value = inp.n_12 :/ inp.n_plus_2
+	}
+	return(value)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 end

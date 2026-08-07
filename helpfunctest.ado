@@ -2,6 +2,38 @@ version 18.5
 
 mata:
 
+struct idxstruct {
+	real colvector idx
+}
+
+// Returns the number of elements of sorted ascending vector v that are < x
+real scalar lb(real colvector v, real scalar x)
+{
+    real scalar lo, hi, mid
+    lo = 1
+    hi = rows(v) + 1
+    while (lo < hi) {
+        mid = floor((lo + hi) / 2)
+        if (v[mid] < x) lo = mid + 1
+        else            hi = mid
+    }
+    return(lo - 1)
+}
+
+// Returns the number of elements of sorted ascending vector v that are <= x
+real scalar ub(real colvector v, real scalar x)
+{
+    real scalar lo, hi, mid
+    lo = 1
+    hi = rows(v) + 1
+    while (lo < hi) {
+        mid = floor((lo + hi) / 2)
+        if (v[mid] <= x) lo = mid + 1
+        else             hi = mid
+    }
+    return(lo - 1)
+}
+
 // XXX v
 // helper function for 2AFC #1 probability score
 // returns 0, 0.5, or 1 based on the comparison of p_lj(l) vs p_ki(l)
@@ -119,8 +151,9 @@ function add_to_excel(class xl scalar excel, row_number, score_number, label, fu
 				excel.set_fmtid(row_number, 4+i, fmtid_txt)
 			}
 		}
+		// disabled:
 		// place the value of the positive class in the value column for 2-category case
-		if (rows(inp.conf_mat) == 2) {
+		/*if (rows(inp.conf_mat) == 2) {
 			if (value[1,1] != .) {
 				excel.put_number(row_number, 4, value[1,1])
 				excel.set_fmtid(row_number, 4, fmtid_num)
@@ -129,13 +162,13 @@ function add_to_excel(class xl scalar excel, row_number, score_number, label, fu
 				excel.put_string(row_number, 4, "NA")
 				excel.set_fmtid(row_number, 4, fmtid_txt)
 			}
-		}
+		}*/
 	}
 	return(value) // return value in case needs to be printed to Stata
 }
 // KONRAD (31) ^
 
-function get_printable_metrics(selected, struct MetricInputs scalar inp, ncat, do_symmetry) {
+function get_printable_metrics(selected, struct MetricInputs scalar inp, ncat, do_symmetry, digs) {
 	ret = J(0, 5 + ncat, "")
 	row_idx = 1
 	for (i=1; i<=rows(selected); i++) {
@@ -169,15 +202,15 @@ function get_printable_metrics(selected, struct MetricInputs scalar inp, ncat, d
 			range = (*f_range)(inp.n, rows(inp.conf_mat), selected[i,s], inp) // XXX
 			ret[row_idx,1] = range
 			if (cols(value) == 1) {
-				ret[row_idx,2] = sprintf("%6.2f", value)
+				ret[row_idx,2] = sprintf("%6." + strofreal(digs) + "f", value)
 			}
 			else {
 				value = include_averages(value, rows(inp.conf_mat), inp.n, inp.n_plus_1)
 				if (ncat == 2) {
-					ret[row_idx,2] = sprintf("%6.2f", value[1])
+					ret[row_idx,2] = sprintf("%6." + strofreal(digs) + "f", value[1])
 				}
 				for (j=1; j<=cols(value); j++) {
-					ret[row_idx,j+2] = sprintf("%6.2f", value[j])
+					ret[row_idx,j+2] = sprintf("%6." + strofreal(digs) + "f", value[j])
 				}
 			}
 			row_idx = row_idx + 1
@@ -202,6 +235,7 @@ void print_matrix(contents, rownames, colnames, | uline, lline, mline, digits, r
 		rowname_width = 0
 		rowname_flag = 0
 	} else {
+		rownames = rownames \ "Total"
 		rowname_width = max(strlen(rownames) \ 10 \ strlen(rowtitle) \ strlen(coltitle))
 		rowname_flag = 1
 	}
@@ -217,10 +251,22 @@ void print_matrix(contents, rownames, colnames, | uline, lline, mline, digits, r
 	if (digits == . | rows(digits) == 0) {
 		digits = 4
 	}
+
+	// compute row totals, column totals, and the grand total, and append them
+	// as an extra column and an extra row
+	rowtotals = rowsum(contents)
+	coltotals = colsum(contents)
+	grandtotal = sum(contents)
+	contents_new = (contents, rowtotals) \ (coltotals, grandtotal)
+	n = n + 1
+	m = m + 1
+
 	_colnames = colnames
 	if (cols(_colnames) > 1){
 		_colnames = _colnames'
 	}
+	_colnames = _colnames \ "Total"
+	colnames = _colnames
 	
 	if (rowtitle == . | rows(rowtitle) == 0) {
 		rowtitle_rows = 0
@@ -242,9 +288,9 @@ void print_matrix(contents, rownames, colnames, | uline, lline, mline, digits, r
 	// todo: support lines before totals
 	numberf = strofreal(digits) + "f"
 	if (rowname_flag) {
-		hline = "{hline " + strofreal(rowname_width+1)+ "}{c +}{hline " + strofreal(sum(colwidths :+ 1) + 2)+ "}\n"
+		hline = "{hline " + strofreal(rowname_width+1)+ "}{c +}{hline " + strofreal(sum(colwidths) - colwidths[m] + (m-1) + 1)+ "}{c +}{hline " + strofreal(colwidths[m]+2) + "}\n"
 	} else {
-		hline = "{hline " + strofreal(rowname_width+1+1+sum(colwidths :+ 1) + 2) + "}\n"
+		hline = "{hline " + strofreal(sum(colwidths) - colwidths[m] + (m-1)) + "}{c +}{hline " + strofreal(colwidths[m]+2) + "}\n"
 	}
 	// print header
 	if (uline) {
@@ -273,6 +319,9 @@ void print_matrix(contents, rownames, colnames, | uline, lline, mline, digits, r
 	}
 	for(j=1; j<=m; j++){
 		displayas("txt")
+		if (j == m) {
+			printf("{c |} ")
+		}
 		printf("%" + strofreal(colwidths[j]) + "s ", colnames[j])
 	}
 	printf("\n")
@@ -282,18 +331,24 @@ void print_matrix(contents, rownames, colnames, | uline, lline, mline, digits, r
 	// print the rest of the table
 	if (coltitle_rows==1){
 		displayas("txt")
-	    printf("%"+strofreal(rowname_width)+ "s {c |}\n",coltitle)
+	    printf("%"+strofreal(rowname_width)+ "s {c |}%" + strofreal(sum(colwidths) - colwidths[m] + (m-1)) + "s {c |}\n", coltitle, "")
 	} else if (coltitle_rows>1){
 	    "A higher (>1) number of words for column title is not yet supported"
 	}
 	for(i=1; i<=n; i++) {
+		if (i == n) {
+			printf(hline)
+		}
 		if (rowname_flag) {
 			displayas("txt")
 			printf("%" + strofreal(rowname_width)+ "s {c |} ", rownames[i])
 		}
 		for(j=1; j<=m; j++){
 			displayas("res")
-			printf("%" + strofreal(colwidths[j]) + "." + numberf + " ", contents[i, j])
+			if (j == m) {
+				printf("{c |} ")
+			}
+			printf("%" + strofreal(colwidths[j]) + "." + numberf + " ", contents_new[i, j])
 		}
 		displayas("txt")
 		printf("\n")
@@ -304,333 +359,338 @@ void print_matrix(contents, rownames, colnames, | uline, lline, mline, digits, r
 }
 
 // Accuracy - Gini 2
-function chunk_1(fbeta_r, goalpha_r, gobeta_r, ibaalpha_r, sokalw_r, gl_theta_r, baulieu_kappa_r, custom_kweights, t_alpha, t_beta, fleiss_holder_p_r, fleiss_lehmer_p_r){
-	b22_label = "Baulieu 22 (kappa=" + strofreal(round(baulieu_kappa_r, 0.0001)) + ")"
-	fbeta_label = "Fb score (beta=" + strofreal(fbeta_r) + ")"
+function chunk_1(struct MetricInputs scalar inp){
+	b22_label = "Baulieu dissimilarity #22 (kappa=" + strofreal(round(inp.baulieu_kappa, 0.0001)) + ")"
+	fbeta_label = "Fbeta-score (beta=" + strofreal(round(inp.fbeta, 0.0001)) + ")"
 
-	gen_fleiss_holder_1_label = "Generalized Fleiss (Holder) 1 (p=" + strofreal(round(fleiss_holder_p_r, 0.0001)) + ")"
-	gen_fleiss_holder_2_label = "Generalized Fleiss (Holder) 2 (p=" + strofreal(round(fleiss_holder_p_r, 0.0001)) + ")"
-	gen_fleiss_holder_3_label = "Generalized Fleiss (Holder) 3 (p=" + strofreal(round(fleiss_holder_p_r, 0.0001)) + ")"
-	gen_fleiss_lehmer_1_label = "Generalized Fleiss (Lehmer) 1 (p=" + strofreal(round(fleiss_lehmer_p_r, 0.0001)) + ")"
-	gen_fleiss_lehmer_2_label = "Generalized Fleiss (Lehmer) 2 (p=" + strofreal(round(fleiss_lehmer_p_r, 0.0001)) + ")"
-	gen_fleiss_lehmer_3_label = "Generalized Fleiss (Lehmer) 3 (p=" + strofreal(round(fleiss_lehmer_p_r, 0.0001)) + ")"
+	gen_fleiss_holder_1_label = "Gener. Fleiss coefficient (Holder) #1 (p=" + strofreal(round(inp.fleiss_holder_p, 0.0001)) + ")"
+	gen_fleiss_holder_2_label = "Gener. Fleiss coefficient (Holder) #2 (p=" + strofreal(round(inp.fleiss_holder_p, 0.0001)) + ")"
+	gen_fleiss_holder_3_label = "Gener. Fleiss coefficient (Holder) #3 (p=" + strofreal(round(inp.fleiss_holder_p, 0.0001)) + ")"
+	gen_fleiss_lehmer_1_label = "Gener. Fleiss coefficient (Lehmer) #1 (p=" + strofreal(round(inp.fleiss_lehmer_p, 0.0001)) + ")"
+	gen_fleiss_lehmer_2_label = "Gener. Fleiss coefficient (Lehmer) #2 (p=" + strofreal(round(inp.fleiss_lehmer_p, 0.0001)) + ")"
+	gen_fleiss_lehmer_3_label = "Gener. Fleiss coefficient (Lehmer) #3 (p=" + strofreal(round(inp.fleiss_lehmer_p, 0.0001)) + ")"
+	
+	iba_label = "Gener. index of balanced accuracy (alpha=" + strofreal(round(inp.ibaalpha,0.0001)) + ",M=" + strofreal(round(inp.ibam,0.0001)) + ")"
+	
+	cr_label = "Cressie-Read power divergence (lambda=" + strofreal(round(inp.crlambda,0.0001)) + ")"
 
 	all_metrics = (
 		"Accuracy",                                         "accuracy",                           "CTS", "",    ""    \
 		"Added value",                                      "added_value",                        "AS",  "",    ""    \
 		"Adjusted noise-to-signal ratio",                   "adjusted_noise_to_signal",           "AS",  "",    ""    \
-		"Alroy",                                            "alroy_corrected_forbes_F",           "TS",  "",    ""    \
-		"AMPLE",                                            "ample",                              "CS",  "",    ""    \
-		"Anderberg",                                        "anderberg",                          "TS",  "",    ""    \
+		"Alroy coefficient",                                "alroy_corrected_forbes_F",           "TS",  "",    ""    \
+		"Anderberg coefficient",                            "anderberg",                          "TS",  "",    ""    \
 		"Anderberg D",                                      "anderberg_D",                        "CTS", "",    ""    \
-		"Appleman",                                         "appleman",                           "CS",  "CTS", ""    \
-		"Atkinson",                                         "atkinson",                           "CTS", "",    ""    \
+		"Appleman index",                                   "appleman",                           "CS",  "CTS", ""    \
+		"Atkinson similarity",                              "atkinson",                           "CTS", "",    ""    \
 		"Balanced accuracy",                                "balanced_accuracy",                  "CS",  "CTS", ""    \
-		"Baroni-Urbani-Buser 1",                            "baroni_urbani_buser_one",            "TS",  "CTS", ""    \
-		"Baroni-Urbani-Buser 2",                            "baroni_urbani_buser_two",            "TS",  "CTS", ""    \
+		"Balanced error rate",                              "balanced_error_rate",                "CS",  "",    ""    \
+		"Baroni-Urbani-Buser #1",                           "baroni_urbani_buser_one",            "TS",  "CTS", ""    \
+		"Baroni-Urbani-Buser #2",                           "baroni_urbani_buser_two",            "TS",  "CTS", ""    \
 		"Base rate",                                        "base_rate",                          "AS",  "CS",  "TS"  \
-		"Baulieu 13",                                       "baulieu_13",                         "CTS", "",    ""    \
+		"Batagelj-Bren distance Q_0",                       "batagelj_bren",                      "CTS", "",    ""    \
+		"Baulieu dissimilarity #13",                        "baulieu_13",                         "CTS", "",    ""    \
 		b22_label,                                          "baulieu_22",                         "TS",  "",    ""    \
-		"Baulieu 23",                                       "baulieu_23",                         "TS",  "",    ""    \
-		"Baulieu 24",                                       "baulieu_24",                         "TS",  "",    ""    \
-		"Baulieu 25",                                       "baulieu_25",                         "TS",  "",    ""    \
-		"Baulieu 27",                                       "baulieu_27",                         "AS",  "",    ""    \
-		"Baulieu 28",                                       "baulieu_28",                         "CTS", "",    ""    \
-		"Baulieu 29",                                       "baulieu_29",                         "TS",  "",    ""    \
-		"Baulieu 30",                                       "baulieu_30",                         "TS",  "",    "")
+		"Baulieu dissimilarity #23",                        "baulieu_23",                         "TS",  "",    ""    \
+		"Baulieu dissimilarity #24",                        "baulieu_24",                         "TS",  "",    ""    \
+		"Baulieu dissimilarity #25",                        "baulieu_25",                         "TS",  "",    ""    \
+		"Baulieu dissimilarity #27",                        "baulieu_27",                         "AS",  "",    ""    \
+		"Baulieu dissimilarity #28",                        "baulieu_28",                         "CTS", "",    ""    \
+		"Baulieu dissimilarity #29",                        "baulieu_29",                         "TS",  "",    ""    \
+		"Baulieu dissimilarity #30",                        "baulieu_30",                         "TS",  "",    "")
 	all_metrics = all_metrics \ (
-		"Baulieu 31",                                       "baulieu_31",                         "TS",  "",    ""    \
-		"Baulieu 32",                                       "baulieu_32",                         "AS",  "",    ""    \
-		"Baulieu 33",                                       "baulieu_33",                         "TS",  "",    ""    \
-		"Benini 1",                                         "benini_1",                           "TS",  "CTS", ""    \
-		"Benini 2",                                         "benini_2",                           "CTS", "",    ""    \
-		"Benini 3",                                         "benini_3",                           "AS",  "CTS", ""    \
-		"Benini 4",                                         "benini_4",                           "AS",  "CTS", ""    \
-		"Bennett",                                          "bennett",                            "CTS", "",    ""    \
-		"Berger-Parker",                                    "berger_parker",                      "CTS", "",    ""    \
-		"Bias",                                             "bias",                               "AS",  "CS",  "TS"  \
-		"Blaheta-Johnson",                                  "blaheta_johnson",                    "CTS", "",    ""    \
-		"Braun-Blanquet",                                   "braun_blanquet",                     "TS",  "CTS", ""    \
-		"Bray-Curtis",                                      "bray_curtis",                        "CTS", "",    ""    \
-		"Brin conviction",                                  "brin_conviction",                    "AS",  "CTS", ""    \
+		"Baulieu dissimilarity #31",                        "baulieu_31",                         "TS",  "",    ""    \
+		"Baulieu dissimilarity #32",                        "baulieu_32",                         "AS",  "",    ""    \
+		"Baulieu dissimilarity #33",                        "baulieu_33",                         "TS",  "",    ""    \
+		"Benini coefficient #1",                            "benini_1",                           "TS",  "CTS", ""    \
+		"Benini coefficient #2",                            "benini_2",                           "CTS", "",    ""    \
+		"Benini coefficient #3",                            "benini_3",                           "AS",  "CTS", ""    \
+		"Benini coefficient #4",                            "benini_4",                           "AS",  "CTS", ""    \
+		"Bennet S coefficient",                             "bennett",                            "CTS", "",    ""    \
+		"Berger-Parker index",                                    "berger_parker",                      "CTS", "",    ""    \
+		"Bias index",                                             "bias",                               "AS",  "CS",  "TS"  \
+		"Blaheta-Johnson unigram subtuples",                                  "blaheta_johnson",                    "CTS", "",    ""    \
+		"Braun-Blanquet similarity index",                                   "braun_blanquet",                     "TS",  "CTS", ""    \
+		"Bray-Curtis dissimilarity index",                                      "bray_curtis",                        "CTS", "",    ""    \
+		"Brin conviction coefficient",                                  "brin_conviction",                    "AS",  "CTS", ""    \
 		"Causal confidence",                                "causal_confidence",                  "AS",  "CTS", "TS"  \
-		"Causal confidence confirmed",                      "causal_confidence_confirmed",        "AS",  "CTS", "TS"  \
+		"Causal confirmed confidence",                      "causal_confidence_confirmed",        "AS",  "CTS", "TS"  \
 		"Causal confirm",                                   "causal_confirm",                     "AS",  "CTS", ""    \
-		"Chord distance",                                   "chord_distance",                     "TS",  "",    ""    \
+		"Chord distance metric",                                   "chord_distance",                     "TS",  "",    ""    \
 		"Clayton skill score",                              "clayton_skill_score",                "CS",  "CTS", ""    \
-		"Clement",                                          "clement",                            "CS",  "CTS", ""    \
+		"Clement reliability coefficient",                                          "clement",                            "CS",  "CTS", ""    \
 		"Cohen kappa coefficient",                          "cohen_pi",                           "CTS", "",    ""    \
-		"Cole C5",                                          "cole_c5",                            "CTS", "",    ""    \
-		"Collective strength",                              "collective_strength",                "AS",  "CS",  "TS"  \
-		"Confirm",                                          "confirm",                            "AS",  "CTS", "TS"  \
-		"Consonni-Todeschini 1",                            "consonni_todeschini_1",              "CTS", "",    ""    \
-		"Consonni-Todeschini 2",                            "consonni_todeschini_2",              "CTS", "",    "")
+		"Cole C_5 correlation coefficient",                                          "cole_c5",                            "CTS", "",    ""    \
+		"Collective strength index",                              "collective_strength",                "AS",  "CS",  "TS"  \
+		"Consonni-Todeschini index #1",                            "consonni_todeschini_1",              "CTS", "",    ""    \
+		"Consonni-Todeschini index #2",                            "consonni_todeschini_2",              "CTS", "",    "")
 	all_metrics = all_metrics \ (
-		"Consonni-Todeschini 3",                            "consonni_todeschini_3",              "TS",  "CTS", ""    \
-		"Consonni-Todeschini 4",                            "consonni_todeschini_4",              "TS",  "CTS", ""    \
-		"Consonni-Todeschini 5",                            "consonni_todeschini_5",              "CTS", "",    ""    \
-		"Coverage",                                         "coverage",                           "AS",  "CTS", "TS"  \
-		"Cramer concordance",                               "cramer_concordance",                 "CTS", "",    ""    \
-		"Cressie-Read",                                     "cressie_read",                       "CTS", "",    ""    \
-		"Czekanowski",                                      "czekanowski",                        "TS",  "CTS", ""    \
-		"Dennis",                                           "dennis",                             "TS",  "CTS", ""    \
-		"Dependency",                                       "dependency",                         "AS",  "CTS", "TS"  \
-		"Digby",                                            "digby",                              "CTS", "",    ""    \
-		"Discrimination distance",                          "discrimination_distance",            "AS",  "CTS", "TS"  \
-		"Dispersion",                                       "dispersion",                         "CTS", "",    ""    \
-		"Dominance",                                        "dominance",                          "AS",  "CTS", "TS"  \
-		"Donaldson bias",                                   "donaldson_bias",                     "AS",  "CS",  "TS"  \
+		"Consonni-Todeschini index #3",                            "consonni_todeschini_3",              "TS",  "CTS", ""    \
+		"Consonni-Todeschini index #4",                            "consonni_todeschini_4",              "TS",  "CTS", ""    \
+		"Consonni-Todeschini index #5",                            "consonni_todeschini_5",              "CTS", "",    ""    \
+		"Cramer concordance coefficient",                               "cramer_concordance",                 "CTS", "",    ""    \
+		cr_label,          "cressie_read",                       "CTS", "",    ""    \
+		"Czekanowski index",                                      "czekanowski",                        "TS",  "CTS", ""    \
+		"Dennis z-score",                                           "dennis",                             "TS",  "CTS", ""    \
+		"Dependency measure",                                       "dependency",                         "AS",  "CTS", "TS"  \
+		"Descriptive confirm",                              "confirm",                            "AS",  "CTS", "TS"  \
+		"Digby correlation coefficient",                                            "digby",                              "CTS", "",    ""    \
+		"Discriminant power",                               "discriminant_power",                 "CTS", "",    ""    \
+		"Discrimination d' distance",                          "discrimination_distance",            "AS",  "CTS", "TS"  \
+		"Dominance index",                                        "dominance",                          "AS",  "CTS", "TS"  \
+		"Donaldson bias index",                                   "donaldson_bias",                     "AS",  "CS",  "TS"  \
 		"Doolittle association ratio",                      "doolittle_association_ratio",        "CTS", "",    ""    \
 		"Doolittle raw accuracy",                           "doolittle_raw_accuracy",             "TS",  "CTS", ""    \
-		"Driver-Kroeber",                                   "driver_kroeber",                     "TS",  "CTS", ""    \
-		"Example and counterexample rate",                  "ex_and_counterex_rate",              "AS",  "CTS", "TS"  \
-		"Extremal dependence",                              "extremal_dependence",                "AS",  "CS",  "TS"  \
-		"Extreme dependency",                               "extreme_dependency",                 "AS",  "CS",  "TS"  \
-		"Eyraud",                                           "eyraud",                             "CTS", "",    ""    \
-		"Fager-McGowan 1",                                  "fager_mcgowan_1",                    "TS",  "CTS", ""    \
-		"Fager-McGowan 2",                                  "fager_mcgowan_2",                    "TS",  "CTS", ""    \
-		"Faith",                                            "faith",                              "TS",  "CTS", ""    \
+		"Driver-Kroeber similarity index",                                   "driver_kroeber",                     "TS",  "CTS", ""    \
+		"Error rate",                                       "error_rate",                         "CTS", "",    ""    \
+		"Example and counterexample",                  "ex_and_counterex_rate",              "AS",  "CTS", "TS"  \
+		"Extremal dependence index",                              "extremal_dependence",                "AS",  "CS",  "TS"  \
+		"Extreme dependency index",                               "extreme_dependency",                 "AS",  "CS",  "TS"  \
+		"Eyraud index",                                           "eyraud",                             "CTS", "",    ""    \
+		"Fager-McGowan index #1",                                  "fager_mcgowan_1",                    "TS",  "CTS", ""    \
+		"Fager-McGowan index #2",                                  "fager_mcgowan_2",                    "TS",  "CTS", ""    \
+		"Faith similarity index",                                            "faith",                              "TS",  "CTS", ""    \
 		"False alarm ratio",                                "false_alarm_ratio",                  "AS",  "CTS", "TS")
 	all_metrics = all_metrics \ (
 		"False negative rate",                              "false_negative_rate",                "AS",  "CTS", "TS"  \
+		"False omission rate",                              "false_omission_rate",                "AS",  "",    ""    \
+		"False positive rate",                              "false_positive_rate",                "AS",  "",    ""    \
 		fbeta_label,                                        "f_b_score",                          "AS",  "CTS", "TS"  \
 		"Fisher exact statistic",                           "fisher_exact_statistic",             "CTS", "",    ""    \
-		"Fleiss kappa",                               		"fleiss_kappa",                  	  "CTS",  "",    ""   \
-		"Fleiss-Levin-Paik",                                "fleiss_levin_paik",                  "TS",  "",    ""    \
-		"Forbes 1",                               			"forbes_1",                           "TS",  "CTS", ""    \
-		"Forbes 2",                                         "forbes_2",                           "TS",  "CTS", ""    \
-		"Fossum",                                           "fossum",                             "TS",  "",    ""    \
-		"Freeman-Tukey statistic",                          "freeman_tukey_statistic",            "CTS", "",    ""    \
+		"Fleiss-Levin-Paik agreement",                                "fleiss_levin_paik",                  "TS",  "",    ""    \
+		"Forbes coefficient #1",                               			"forbes_1",                           "TS",  "CTS", ""    \
+		"Forbes coefficient #2",                                         "forbes_2",                           "TS",  "CTS", ""    \
+		"Fossum index",                                           "fossum",                             "TS",  "",    ""    \
+		"Freeman-Tukey F^2 statistic",                     "freeman_tukey_statistic",            "CTS", "",    ""    \
+		"Freeman-Tukey F^2 statistic (asymptotic)",        "freeman_tukey_statistic_as",         "CTS", "",    ""    \
 		"F-score adjusted",                                 "f_score_adjusted",                   "AS",  "CTS", ""    \
-		"G-mean",                                           "g_mean",                             "CS",  "CTS", ""    \
-		"G-mean adjusted",                                  "g_mean_adjusted",                    "AS",  "CS",  "TS"  \
-		"Galton",                                           "galton",                             "CTS", "",    ""    \
-		"Ganascia",                                         "ganascia",                           "AS",  "CTS", "TS"  \
-		"Generalized Fleiss (arithmetic) 2",               "gen_fleiss_arithmetic_2",             "CTS", "",    ""    \
-		"Generalized Fleiss (arithmetic) 3",               "gen_fleiss_arithmetic_3",             "CTS", "",    ""    \
-		"Generalized Fleiss (contraharmonic) 1",           "gen_fleiss_contraharmonic_1",         "CTS", "",    ""    \
-		"Generalized Fleiss (contraharmonic) 2",           "gen_fleiss_contraharmonic_2",         "CTS", "",    ""    \
-		"Generalized Fleiss (contraharmonic) 3",           "gen_fleiss_contraharmonic_3",         "CTS", "",    ""    \
-		"Generalized Fleiss (harmonic) 1",                 "gen_fleiss_harmonic_1",               "CTS", "",    ""    \
-		"Generalized Fleiss (harmonic) 2",                 "gen_fleiss_harmonic_2",               "CTS", "",    ""    \
-		"Generalized Fleiss (harmonic) 3",                 "gen_fleiss_harmonic_3",               "CTS", "",    ""    \
-		"Generalized Fleiss (Heronian) 1",                 "gen_fleiss_heronian_1",               "CTS", "",    ""    \
-		"Generalized Fleiss (Heronian) 2",                 "gen_fleiss_heronian_2",               "CTS", "",    ""    \
-		"Generalized Fleiss (Heronian) 3",                 "gen_fleiss_heronian_3",               "CTS", "",    "" )
+		"Galton agreement coefficient",                                           "galton",                             "CTS", "",    ""    \
+		"Ganascia coefficient",                                         "ganascia",                           "AS",  "CTS", "TS"  \
+		"Gener. Fleiss coefficient (arithmetic) #2",               "gen_fleiss_arithmetic_2",             "CTS", "",    ""    \
+		"Gener. Fleiss coefficient (contraharmonic) #1",           "gen_fleiss_contraharmonic_1",         "CTS", "",    ""    \
+		"Gener. Fleiss coefficient (contraharmonic) #2",           "gen_fleiss_contraharmonic_2",         "CTS", "",    ""    \
+		"Gener. Fleiss coefficient (contraharmonic) #3",           "gen_fleiss_contraharmonic_3",         "CTS", "",    ""    \
+		"Gener. Fleiss coefficient (harmonic) #1",                 "gen_fleiss_harmonic_1",               "CTS", "",    ""    \
+		"Gener. Fleiss coefficient (harmonic) #2",                 "gen_fleiss_harmonic_2",               "CTS", "",    ""    \
+		"Gener. Fleiss coefficient (harmonic) #3",                 "gen_fleiss_harmonic_3",               "CTS", "",    ""    \
+		"Gener. Fleiss coefficient (Heronian) #1",                 "gen_fleiss_heronian_1",               "CTS", "",    ""    \
+		"Gener. Fleiss coefficient (Heronian) #2",                 "gen_fleiss_heronian_2",               "CTS", "",    ""    \
+		"Gener. Fleiss coefficient (Heronian) #3",                 "gen_fleiss_heronian_3",               "CTS", "",    "" )
 	all_metrics = all_metrics \ (
 		gen_fleiss_holder_1_label,                          "gen_fleiss_holder_1",                "CTS", "",    ""    \
 		gen_fleiss_holder_2_label,                          "gen_fleiss_holder_2",                "CTS", "",    ""    \
 		gen_fleiss_holder_3_label,                          "gen_fleiss_holder_3",                "CTS", "",    ""    \
-		"Generalized Fleiss (identric) 1",                 "gen_fleiss_identric_1",              "CTS", "",    ""    \
-		"Generalized Fleiss (identric) 2",                 "gen_fleiss_identric_2",              "CTS", "",    ""    \
-		"Generalized Fleiss (identric) 3",                 "gen_fleiss_identric_3",              "CTS", "",    ""    \
+		"Gener. Fleiss coefficient (identric) #1",                 "gen_fleiss_identric_1",              "CTS", "",    ""    \
+		"Gener. Fleiss coefficient (identric) #2",                 "gen_fleiss_identric_2",              "CTS", "",    ""    \
+		"Gener. Fleiss coefficient (identric) #3",                 "gen_fleiss_identric_3",              "CTS", "",    ""    \
 		gen_fleiss_lehmer_1_label,                 			"gen_fleiss_lehmer_1",                "CTS", "",    ""    \
 		gen_fleiss_lehmer_2_label,                 			"gen_fleiss_lehmer_2",                "CTS", "",    ""    \
 		gen_fleiss_lehmer_3_label,                 			"gen_fleiss_lehmer_3",                "CTS", "",    ""    \
-		"Generalized Fleiss (logarithmic) 1",              "gen_fleiss_logarithmic_1",           "CTS", "",    ""    \
-		"Generalized Fleiss (logarithmic) 2",              "gen_fleiss_logarithmic_2",           "CTS", "",    ""    \
-		"Generalized Fleiss (logarithmic) 3",              "gen_fleiss_logarithmic_3",           "CTS", "",    ""    \
-		"Generalized Fleiss (quadratic) 1",                "gen_fleiss_quadratic_1",             "CTS", "",    ""    \
-		"Generalized Fleiss (quadratic) 2",                "gen_fleiss_quadratic_2",             "CTS", "",    ""    \
-		"Generalized Fleiss (quadratic) 3",                "gen_fleiss_quadratic_3",             "CTS", "",    ""    \
-		"Generalized Fleiss (Seiffert) 1",                 "gen_fleiss_seiffert_1",              "CTS", "",    ""    \
-		"Generalized Fleiss (Seiffert) 2",                 "gen_fleiss_seiffert_2",              "CTS", "",    ""    \
-		"Generalized Fleiss (Seiffert) 3",                 "gen_fleiss_seiffert_3",              "CTS", "",    ""    \
-		"Gerrity skill score (ORD)",                        "gerrity_skill_score",                "AS",  "",    ""    \
-		"Gilbert",                                          "gilbert",                            "TS",  "",    ""    \
+		"Gener. Fleiss coefficient (logarithmic) #1",              "gen_fleiss_logarithmic_1",           "CTS", "",    ""    \
+		"Gener. Fleiss coefficient (logarithmic) #2",              "gen_fleiss_logarithmic_2",           "CTS", "",    ""    \
+		"Gener. Fleiss coefficient (logarithmic) #3",              "gen_fleiss_logarithmic_3",           "CTS", "",    ""    \
+		"Gener. Fleiss coefficient (quadratic) #1",                "gen_fleiss_quadratic_1",             "CTS", "",    ""    \
+		"Gener. Fleiss coefficient (quadratic) #2",                "gen_fleiss_quadratic_2",             "CTS", "",    ""    \
+		"Gener. Fleiss coefficient (quadratic) #3",                "gen_fleiss_quadratic_3",             "CTS", "",    ""    \
+		"Gener. Fleiss coefficient (Seiffert) #1",                 "gen_fleiss_seiffert_1",              "CTS", "",    ""    \
+		"Gener. Fleiss coefficient (Seiffert) #2",                 "gen_fleiss_seiffert_2",              "CTS", "",    ""    \
+		"Gener. Fleiss coefficient (Seiffert) #3",                 "gen_fleiss_seiffert_3",              "CTS", "",    ""    \
+		iba_label,                                          "iba",                                "AS",  "",  ""  \
+		"Gerrity skill score [ORD]",                        "gerrity_skill_score",                "AS",  "",    ""    \
+		"Gilbert index",                                          "gilbert",                            "TS",  "",    ""    \
 		"Gilbert skill score",                              "gilbert_skill_score",                "TS",  "",    ""    \
-		"Gilbert-Wells",                                    "gilbert_wells",                      "CTS",  "",    ""    \
-		"Gini 1",                                           "gini_1",                             "CS",  "CTS", ""    \
-		"Gini 2",                                           "gini_2",                             "CTS", "",    "")
+		"Gilbert-Wells index",                                    "gilbert_wells",                      "CTS",  "",    ""    \
+		"Gini coefficient #1",                                           "gini_1",                             "CS",  "CTS", ""    \
+		"Gini coefficient #2",                                           "gini_2",                             "CTS", "",    "" \
+		"Gini impurity index",                              "gini_impurity",                      "AS",   "",   "" \
+		"G-mean",                                           "g_mean",                             "CS",  "CTS", ""    \
+		"G-mean adjusted",                                  "g_mean_adjusted",                    "AS",  "CS",  "TS")
 
 	return(all_metrics)
 }
 
 // Gini 2 - End
-function chunk_2(fbeta_r, goalpha_r, gobeta_r, ibaalpha_r, sokalw_r, gl_theta_r, baulieu_kappa_r, custom_kweights, t_alpha, t_beta, fleiss_holder_p_r, fleiss_lehmer_p_r){
-	gl_label = "Gower-Legendre S_theta (theta=" + strofreal(gl_theta_r) + ")"
-	gray_orlowska_label = "Gray-Orlowska (alpha=" + strofreal(goalpha_r) + ",beta=" + strofreal(gobeta_r) + ")"
-	iba_label = "IBA (alpha=" + strofreal(ibaalpha_r) + ")"
-	ss_6_label = "Sokal-Sneath 6 (w=" + strofreal(sokalw_r) + ")"
-	tversky_label = "Tversky (alpha=" + strofreal(t_alpha) + ",beta=" + strofreal(t_beta) + ")"
-	if (custom_kweights) {
-		weighted_kappa_label = "Weighted kappa (user weights)"
+function chunk_2(struct MetricInputs scalar inp) {
+	gl_label = "Gower-Legendre Stheta index (theta=" + strofreal(round(inp.gl_theta, 0.0001)) + ")"
+	gray_orlowska_label = "Gray-Orlowska index (alpha=" + strofreal(round(inp.goalpha, 0.0001)) + ",beta=" + strofreal(round(inp.gobeta,0.0001)) + ")"
+	ss_6_label = "Sokal-Sneath similarity coefficient #6 (w=" + strofreal(round(inp.sokal_w,0.0001)) + ")"
+	tversky_label = "Tversky index (alpha=" + strofreal(round(inp.t_alpha,0.0001)) + ",beta=" + strofreal(round(inp.t_beta,0.0001)) + ")"
+	if (inp.custom_kweights) {
+		weighted_kappa_label = "Weighted kappa coefficient (user weights)"
 	}
 	else {
-		weighted_kappa_label = "Weighted kappa (Id weights)"
+		weighted_kappa_label = "Weighted kappa coefficient (default weights)"
 	}
+	van_rijsbergen_label = "Van Rijsbergen E-measure (alpha=" + strofreal(round(inp.ealpha, 0.01)) + ")"
 
 	all_metrics = (
-		"Goodall",                                   		"goodall",                     		  "CTS", "",    ""    \
-		"Goodman concomitance",                             "goodman_concomitance",               "CTS", "",    ""    \
-		"Goodman-Kruskal 1",                                "goodman_kruskal_1",                  "CTS", "",    ""    \
-		"Goodman-Kruskal 2",                                "goodman_kruskal_2",                  "CTS", "",    ""    \
-		"Goodman-Kruskal gamma (ORD)",                      "goodman_kruskal_gamma",              "TS",  "",    ""    \
-		"Goodman-Kruskal lambda",                           "goodman_kruskal_lambda",             "CS",  "CTS", ""    \
-		"Goodman-Kruskal lambda r",                         "goodman_kruskal_lambda_r",           "CS",  "CTS", ""    \
-		"Goodman-Kruskal tau",                              "goodman_kruskal_tau",                "CS",  "CTS", ""    \
+		"Goodall index",                                   		"goodall",                     		  "CTS", "",    ""    \
+		"Goodman concomitance coefficient",                             "goodman_concomitance",               "CTS", "",    ""    \
+		"Goodman-Kruskal coefficient #1",                                "goodman_kruskal_1",                  "CTS", "",    ""    \
+		"Goodman-Kruskal coefficient #2",                                "goodman_kruskal_2",                  "CTS", "",    ""    \
+		"Goodman-Kruskal gamma coefficient [ORD]",                      "goodman_kruskal_gamma",              "TS",  "",    ""    \
+		"Goodman-Kruskal lambda coefficient",                           "goodman_kruskal_lambda",             "CS",  "CTS", ""    \
+		"Goodman-Kruskal lambda_r coefficient",                         "goodman_kruskal_lambda_r",           "CS",  "CTS", ""    \
+		"Goodman-Kruskal tau coefficient",                              "goodman_kruskal_tau",                "CS",  "CTS", ""    \
 		"Goodman-Kruskal weighted lambda",                  "goodman_kruskal_lambda_w",           "CS",  "CTS", ""    \
+		"Goodman unweighted association",                   "goodman_unweighted_assc",            "CTS", "",    ""    \
 		"Goodman weighted association",                     "goodman_weighted_association",       "CTS", "",    ""    \
-		"Gorodkin Rk",                                      "gorodkin_Rk",                        "CTS", "",    ""    \
+		"Gorodkin Rk coefficient",                                      "gorodkin_Rk",                        "CTS", "",    ""    \
 		gl_label,                                           "gower_legendre",                     "CTS", "",    ""    \
 		gray_orlowska_label,                                "gray_orlowska",                      "TS",  "CTS", ""    \
-		"Grier B bias",                                     "grier_B_bias",                       "AS",  "CS",  "TS"  \
-		"Guttman",                                          "guttman",                            "CS",  "CTS", ""    \
-		"Hamann",                                           "hamann",                             "CTS", "",    ""    \
-		"Harris-Lahey",                                     "harris_lahey",                       "CTS", "",    ""    \
-		"Hawkins-Dotson",                                   "hawkins_dotson",                     "CTS", "",    ""    \
+		"Grier B' bias index",                                     "grier_B_bias",                       "AS",  "CS",  "TS"  \
+		"Guttman coefficient",                                          "guttman",                            "CS",  "CTS", ""    \
+		"Hamann coefficient",                                           "hamann",                             "CTS", "",    ""    \
+		"Harris-Lahey index",                                     "harris_lahey",                       "CTS", "",    ""    \
+		"Hawkins-Dotson coefficient",                                   "hawkins_dotson",                     "CTS", "",    ""    \
 		"Heidke skill score",                               "heidke_skill_score",                 "CTS", "",    ""    \
+		"Hellinger distance",                               "hellinger_distance",                 "TS",  "",    ""    \
 		"Hit rate",                                         "hit_rate",                           "AS",  "CTS", "TS"  \
-		"Hoeffding 1",                                      "hoeffding_1",                        "CTS", "",    ""    \
-		"Hoeffding 2",                                      "hoeffding_2",                        "CTS", "",    ""    \
-		"Hubert-Arabie adj Rand index",                     "hubert_arabie",                      "CTS", "",    ""    \
-		iba_label,                                          "iba",                                "AS",  "CS",  "TS"  \
+		"Hoffding coefficient #1",                                      "hoeffding_1",                        "CTS", "",    ""    \
+		"Hoffding coefficient #2",                                      "hoeffding_2",                        "CTS", "",    ""    \
+		"Hubert-Arabie adjusted Rand index",                     "hubert_arabie",                      "CTS", "",    ""    \
+		"Index of dissimilarity",                           "ample",                              "CS",  "",    ""    \
 		"Information quality ratio",                        "information_quality_ratio",          "CTS", "",    ""    \
 		"J-measure",                                        "j_measure",                          "AS",  "CTS", "TS"  \
-		"Kendall tau-a (ORD)",                              "kendall_tau_a",                      "TS",  "",    ""    \
-		"Kendall tau-b (ORD)",                              "kendall_tau_b",                      "TS",  "",    ""    \
-		"Kitamura-Matsumoto",                               "kitamura_matsumoto",                 "TS",  "CTS", ""    \
-		"Klosgen",                                          "klosgen",                            "AS",  "CTS", "TS"  \
-		"Koppen (ORD)",                                     "koppen",                             "TS",  "",    ""    \
-		"Krippendorff alpha",                               "krippendorff",                       "CTS", "",    ""    \
-		"Kuder-Richardson",                                 "kuder_richardson",                   "CTS", "",    "")
+		"Johnson",                                          "johnson",                            "TS",  "",    ""    \
+		"Kendall tau-a coefficient [ORD]",                              "kendall_tau_a",                      "TS",  "",    ""    \
+		"Kendall tau-b coefficient [ORD]",                              "kendall_tau_b",                      "TS",  "",    ""    \
+		"Kent-Foster #1 coefficient",                       "kent_foster_1",                      "TS",  "",    ""    \
+		"Kent-Foster #2 coefficient",                       "kent_foster_2",                      "TS",  "",    ""    \
+		"Kitamura-Matsumoto index",                               "kitamura_matsumoto",                 "TS",  "CTS", ""    \
+		"Klosgen measure",                                          "klosgen",                            "AS",  "CTS", "TS"  \
+		"Koppen index [ORD]",                                     "koppen",                             "TS",  "",    ""    \
+		"Krippendorff alpha coefficient",                               "krippendorff",                       "CTS", "",    ""    \
+		"Kuder-Richardson coefficient",                                 "kuder_richardson",                   "CTS", "",    "")
 	all_metrics = all_metrics \ (
-		"Kuhns 1",                                          "kuhns_1",                            "TS",  "CTS", ""    \
-		"Kuhns 2",                                          "kuhns_2",                            "TS",  "CTS", ""    \
-		"Kulczynski 1",                                     "kulczynski_1",                       "TS",  "CTS", ""    \
-		"Kulczynski 2",                                     "kulczynski_2",                       "TS",  "CTS", ""    \
-		"Lakshmanamurti",                                   "lakshmanamurti",                     "CTS", "",    ""    \
+		"Kuhns coefficient #1",                                          "kuhns_1",                            "TS",  "CTS", ""    \
+		"Kuhns coefficient #2",                                          "kuhns_2",                            "TS",  "CTS", ""    \
+		"Kulczynski index #1",                                     "kulczynski_1",                       "TS",  "CTS", ""    \
+		"Kulczynski index #2",                                     "kulczynski_2",                       "TS",  "CTS", ""    \
+		"Lakshmanamurti Lambda coefficient",                                   "lakshmanamurti",                     "CTS", "",    ""    \
 		"Laplace correction",                               "laplace_correction",                 "AS",  "CTS", ""    \
-		"Least contradiction",                              "least_contradiction",                "AS",  "CTS", "TS"  \
-		"Lerman",                                           "lerman",                             "AS",  "CTS", ""    \
-		"Leverage",                                         "leverage",                           "AS",  "CTS", "TS"  \
-		"Log Forbes",                             			"log_forbes",                    	  "TS",  "CTS", ""    \
-		"Log frequency biased",                             "log_freq_biased",                    "TS",  "CTS", ""    \
-		"Likelihood ratio G^2",                             "likelihood_ratio",                   "CTS", "",    ""    \
-		"Log odds ratio amended",                           "log_odds_ratio_amended",             "CTS", "",    ""    \
-		"Log odds ratio",                                   "log_odds_ratio",                     "CTS", "",    ""    \
-		"Mak rho",                           				"mak_rho",             				  "CTS", "",    ""    \
-		"Maron-Kuhns",                                      "maron_kuhns",                        "CTS", "",    ""    \
-		"Maxwell B",                                        "maxwell_B",                          "CTS", "",    ""    \
-		"Maxwell-Pilliner",                                 "maxwell_pilliner",                   "CTS", "",    ""    \
-		"McConnaughey",                                     "mcconnaughey",                       "TS",  "CTS", ""    \
-		"Merton correct prediction CP",                     "merton_CP",                          "CS",  "",    ""    \
-		"Michael",                                          "michael",                            "CTS", "",    ""    \	
-		"MDI statistic",                                    "mdis",                               "CTS", "",    ""    \
-		"Mountford",                                        "mountford",                          "TS",  "CTS", ""    \
+		"Least contradiction index",                              "least_contradiction",                "AS",  "CTS", "TS"  \
+		"Lerman implication index",                                           "lerman",                             "AS",  "CTS", ""    \
+		"Leverage",                                         "leverage",                           "CTS", "",    ""    \
+		"Likelihood ratio G^2 statistic",              "likelihood_ratio",                   "CTS", "",    ""    \
+		"Log Forbes measure",                             			"log_forbes",                    	  "TS",  "CTS", ""    \
+		"Log frequency biased index",                             "log_freq_biased",                    "TS",  "CTS", ""    \
+		"Log odds ratio amended statistic",                           "log_odds_ratio_amended",             "CTS", "",    ""    \
+		"Log odds ratio statistic",                                   "log_odds_ratio",                     "CTS", "",    ""    \
+		"Mak rho coefficient",                           				"mak_rho",             				  "CTS", "",    ""    \
+		"Mantel-Haenszel statistic [ORD]",                  "mantel_haenszel",                    "CTS", "",    ""    \
+		"Maron-Kuhns coefficient",                                      "maron_kuhns",                        "CTS", "",    ""    \
+		"Maxwell B coefficient",                                        "maxwell_B",                          "CTS", "",    ""    \
+		"Maxwell-Pilliner coefficient",                                 "maxwell_pilliner",                   "CTS", "",    ""    \
+		"McConnaughey coefficient",                                     "mcconnaughey",                       "TS",  "CTS", ""    \
+		"Merton correct prediction CP index",                     "merton_CP",                          "CS",  "",    ""    \
+		"Michael index",                                          "michael",                            "CTS", "",    ""    \
+		"Modified likelihood ratio statistics",         "mdis",                               "CTS", "",    ""    \
+		"Mountford index",                                        "mountford",                          "TS",  "CTS", ""    \
+		"Mueller-Schuessler IQV index",                     "mueller_schuessler",                 "AS",  "",    ""    \
 		"Mutual dependency",                                "mutual_dependency",                  "TS",  "CTS", ""    \
-		"Mutual information",                               "mutual_information",                 "CTS", "",    ""    \
-		"Negative likelihood ratio",                        "neg_likelihood_ratio",               "AS",  "CS",  "TS"  \
-		"Neyman modified chi2 statistic",                   "neyman_modified_chi2_statistic",     "CTS", "",    ""    \
-		"Normalised Google distance",                       "norm_google_dist",                   "TS",  "CTS", ""    \
+		"Mutual information statistic",                               "mutual_information",                 "CTS", "",    ""    \
+		"Negative likelihood ratio statistic",                        "neg_likelihood_ratio",               "AS",  "CS",  "TS"  \
+		"Negative predicted value",                         "neg_pred_value",                     "AS",  "",    ""    \
+		"Neyman modified chi^2 statistic",                   "neyman_modified_chi2_statistic",     "CTS", "",    ""    \
+		"Normalized Google distance",                       "norm_google_dist",                   "TS",  "CTS", ""    \
 		"Odds ratio",                                       "odds_ratio",                         "CTS", "",    ""    \
 		"Odds ratio amended",                               "odds_ratio_amended",                 "CTS", "",    ""    \
 		"Optimized precision",                              "optimized_precision",                "CS",  "CTS", ""    \
 		"P4-score",                                         "p4_score",                           "CTS", "",    ""    \		
 		"Pattern difference",                               "pattern_difference",                 "CTS", "",    ""    \
-		"Pearson chi^2",                                    "pearson_chi2",                       "CTS", "",    ""    \		
-		"Pearson contingency C",                            "pearson_contingency_c",              "CTS", "",    ""    \
-		"Pearson-Heron",                                    "pearson_heron",                      "CTS", "",    ""    \
-		"Pearson phi",                            			"pearson_phi",              	      "CTS", "",    ""    \
+		"Pearson chi^2 statistic",                                    "pearson_chi2",                       "CTS", "",    ""    \		
+		"Pearson contingency C coefficient",                            "pearson_contingency_c",              "CTS", "",    ""    \
+		"Pearson-Heron coefficient",                                    "pearson_heron",                      "CTS", "",    ""    \
+		"Pearson phi coefficient",                            			"pearson_phi",              	      "CTS", "",    ""    \
 		"Peirce skill score",                               "peirce_skill_score",                 "CTS", "",    ""    \
-		"Pietra",                                           "pietra",                             "CTS", "",    ""    )
+		"Pietra statistic",                                           "pietra",                             "CTS", "",    ""    )
 	all_metrics = all_metrics \ (
-		"Poisson-Stirling",                                 "poisson_stirling",                   "TS",  "",    ""    \
-		"Pollack-Norman",                                   "pollack_norman",                     "AS",  "CS",  "TS"  \
-		"Pollaczek-Geiringer (ORD)",                        "pollaczek_geiringer",                "TS",  "",    ""    \
+		"Poisson-Stirling index",                                 "poisson_stirling",                   "TS",  "",    ""    \
+		"Pollack-Norman A' sensitivity statistic",                                   "pollack_norman",                     "AS",  "CS",  "TS"  \
+		"Pollaczek-Geiringer coefficient [ORD]",                        "pollaczek_geiringer",                "TS",  "",    ""    \
 		"Positive likelihood ratio",                        "pos_likelihood_ratio",               "AS",  "CS",  "TS"  \
-		"Positive matching",                                "positive_matching",                  "TS",  "CTS", ""    \
+		"Positive matching coefficient",                                "positive_matching",                  "TS",  "CTS", ""    \
 		"Precision",                                        "precision",                          "AS",  "CTS", "TS"  \
-		"Prevalence threshold",                             "prevalence_threshold",               "AS",  "CS",  "TS"  \
-		"Putative causal dependency",                       "putative_causal_dependency",         "AS",  "CTS", ""    \
-		"Relative Risk",                                    "relative_risk",                      "AS",  "CS",  "TS"  \
+		"Predicted negative rate",                          "predicted_negative_rate",            "AS",  "",    ""    \
+		"Predicted positive rate",                          "coverage",                           "AS",  "CTS", "TS"  \
+		"Prevalence threshold index",                             "prevalence_threshold",               "AS",  "CS",  "TS"  \
+		"Putative causal dependency index",                       "putative_causal_dependency",         "AS",  "CTS", ""    \
+		"Relative risk ratio",                                    "relative_risk",                      "AS",  "CS",  "TS"  \
 		"Relative Quetelet index",                          "relative_quetelet_index",            "TS",  "CTS", ""    \
-		"Rogers-Tanimoto",                                  "rogers_tanimoto",                    "CTS", "",    ""    \
-		"Rogot-Goldberg",                                   "rogot_goldberg",                     "CTS", "",    ""    \
-		"Rousseau",                                         "rousseau",                           "TS",  "CTS", ""    \
-		"Roux 1",                                           "roux_1",                             "CTS", "",    ""    \
-		"Roux 2",                                           "roux_2",                             "CTS", "",    ""    \
-		"Russell-Rao",                                      "russell_rao",                        "TS",  "CTS", ""    \
-		"Schrank",                                          "schrank",                            "CTS", "",    ""    \
-		"Scott",                                            "scott",                              "CTS", "",    ""    \
-		"Scott pi",                                         "scott_pi",                           "CTS", "",    ""    \
-		"Sebag-Schoenauer",                                 "sebag_schoenauer",                   "AS",  "CTS", "TS"  \
+		"Renkonen similarity index",                        "renkonen",                           "AS",  "",    ""    \
+		"Replacement comp. (Jaccard)",            "replacement_comp_j",                 "TS",  "",    ""    \
+		"Replacement comp. (Sorensen)",           "replacement_comp_s",                 "TS",  "",    ""    \
+		"Replacement comp. (Braun-Blanquet)",     "replacement_comp_b",                 "TS",  "",    ""    \
+		"Richness difference (Jaccard)",              "richness_diff_j",                    "TS",  "",    ""    \
+		"Richness difference (Sorensen)",             "richness_diff_s",                    "TS",  "",    ""    \
+		"Richness difference (Braun-Blanquet)",       "richness_diff_b",                    "TS",  "",    ""    \
+		"Rogers-Tanimoto coefficient",                                  "rogers_tanimoto",                    "CTS", "",    ""    \
+		"Rogot-Goldberg index",                                   "rogot_goldberg",                     "CTS", "",    ""    \
+		"Root mean square difference",                      "root_mean_sq_diff",                  "CTS", "",    ""    \
+		"Rousseau index",                                         "rousseau",                           "TS",  "CTS", ""    \
+		"Roux index #1",                                           "roux_1",                             "CTS", "",    ""    \
+		"Roux index #2",                                           "roux_2",                             "CTS", "",    ""    \
+		"Russell-Rao coefficient",                                      "russell_rao",                        "TS",  "CTS", ""    \
+		"Schrank index",                                          "schrank",                            "CTS", "",    ""    \
+		"Scott pi coefficient",                                         "scott_pi",                           "CTS", "",    ""    \
+		"Sebag-Schoenauer index",                                 "sebag_schoenauer",                   "AS",  "CTS", "TS"  \
 		"Shape difference",                                 "shape_difference",                   "CTS", "",    ""    \
-		"Simple matching",                                  "simple_matching",                    "TS",  "CTS", ""    \
+		"Simple matching coefficient",                                  "simple_matching",                    "TS",  "CTS", ""    \
 		"Size difference",                                  "size_difference",                    "CTS", "",    ""    \
-		"Sokal-Sneath 1",                                   "sokal_sneath_1",                     "CTS", "",    ""    \
-		"Sokal-Sneath 2",                                   "sokal_sneath_2",                     "CTS", "",    ""    \
-		"Sokal-Sneath 3",                                   "sokal_sneath_3",                     "CTS", "",    ""    \
-		"Sokal-Sneath 4",                                   "sokal_sneath_4",                     "CTS", "",    ""    \
-		"Sokal-Sneath 5",                                   "sokal_sneath_5",                     "TS",  "CTS", ""    \
+		"Sokal-Sneath similarity coefficient #1",                                   "sokal_sneath_1",                     "CTS", "",    ""    \
+		"Sokal-Sneath similarity coefficient #2",                                   "sokal_sneath_2",                     "CTS", "",    ""    \
+		"Sokal-Sneath similarity coefficient #3",                                   "sokal_sneath_3",                     "CTS", "",    ""    \
+		"Sokal-Sneath similarity coefficient #4",                                   "sokal_sneath_4",                     "CTS", "",    ""    \
+		"Sokal-Sneath similarity coefficient #5",                                   "sokal_sneath_5",                     "TS",  "CTS", ""    \
 		ss_6_label,                                         "sokal_sneath_6",                     "TS", "CTS",  ""    \
-		"Somers d (ORD)",                                   "somers_d",                           "AS",  "TS",  ""    \
-		"Sorensen",                                         "sorensen",                           "TS",  "",    ""    \
+		"Somers d statistics [ORD]",                                   "somers_d",                           "AS",  "TS",  ""    \
+		"Sorensen similarity coefficient",                                         "sorensen",                           "TS",  "",    ""    \
+		"Specificity",                                        "specificity",                        "AS",  "",    ""    \
 		"Standard deviation agreement index",               "sdai",                               "CTS", "",    ""    \
-		"Steffensen psi^2",                                 "steffensen_psi2",                    "CTS", "",    ""    \
-		"Steffensen omega",                                 "steffensen_omega",                   "CTS", "",    ""    \
-		"Stiles",                                           "stiles",                             "CTS", "",    "")
+		"Steffensen psi^2 coefficient",                                 "steffensen_psi2",                    "CTS", "",    ""    \
+		"Steffensen omega coefficient",                                 "steffensen_omega",                   "CTS", "",    ""    \
+		"Stiles coefficient",                                           "stiles",                             "CTS", "",    "")
 	all_metrics = all_metrics \ (
-		"Stuart tau-c (ORD)",                               "kendall_tau_c",                      "TS",  "",    ""    \
-		"Success",                                          "success",                            "TS",  "CTS", ""    \
-		"Szymkiewicz-Simpson",                              "szymkiewicz_simpson",                "TS",  "CTS", ""    \		
-		"Tarantula",                                        "tarantula",                          "AS",  "CS",  "TS"  \
-		"Theil",                                            "theil",                              "CS",  "CTS", ""    \
-		"Tonnies (ORD)",                                    "tonnies",                            "TS",  "",    ""    \
-		"Tschuprow T bias corrected",                       "tschuprow_t_bias_corrected",         "CTS", "",    ""    \
-		"Tschuprow T",                                      "tschuprow_t",                        "CTS", "",    ""    \
+		"Stuart tau-c correlation [ORD]",                               "kendall_tau_c",                      "TS",  "",    ""    \
+		"Success index",                                          "success",                            "TS",  "CTS", ""    \
+		"Szymkiewicz-Simpson coefficient",                              "szymkiewicz_simpson",                "TS",  "CTS", ""    \		
+		"Tarantula metric",                                        "tarantula",                          "AS",  "CS",  "TS"  \
+		"Theil uncertainty coefficient U",                  "theil",                              "CS",  "CTS", ""    \
+		"Theil symmetric coefficient U",        "theil_sym",                          "CTS", "",    ""    \
+		"Tonnies coefficient [ORD]",                                    "tonnies",                            "TS",  "",    ""    \
+		"Tschuprow T bias-corrected coefficient",                       "tschuprow_t_bias_corrected",         "CTS", "",    ""    \
+		"Tschuprow T coefficient",                                      "tschuprow_t",                        "CTS", "",    ""    \
 		"t-score",                                          "t_score",                            "TS",  "CTS", ""    \
-		"Tulloss R cost",                                   "tulloss_r_cost",                     "TS",  "CTS", ""    \
-		"Tulloss S cost",                                   "tulloss_s_cost",                     "TS",  "CTS", ""    \
-		"Tulloss T combined costs",                         "tulloss_t_combined_costs",           "TS",  "CTS", ""    \		
-		"Tulloss U cost",                                   "tulloss_u_cost",                     "TS",  "CTS", ""    \
+		"Tulloss R cost index",                                   "tulloss_r_cost",                     "TS",  "CTS", ""    \
+		"Tulloss S cost index",                                   "tulloss_s_cost",                     "TS",  "CTS", ""    \
+		"Tulloss T combined costs index",                         "tulloss_t_combined_costs",           "TS",  "CTS", ""    \		
+		"Tulloss U cost index",                                   "tulloss_u_cost",                     "TS",  "CTS", ""    \
 	 	tversky_label, 										"tversky", 							  "AS", "", 	""	  \
-		"Two alternative forced choice 1",                  "two_afc_1",                          "CS",  "",    ""    \
-		"Two alternative forced choice 2 (ORD)",            "two_afc_2",                          "AS",  "",    ""    \
-		"Upholt S",                                         "upholt_s",                           "TS",  "CTS", ""    \
-		"Van der Maarel",                                   "van_der_maarel",                     "TS",  "CTS", ""    \
-		"Variance dissimilarity", 							"variance_dissimilarity", 			  "CTS", "", 	""	  \
-		"Warrens",                                          "warrens",                            "CTS", "",    ""    \
+		"2AFC statistic #1",                  "two_afc_1",                          "CS",  "",    ""    \
+		"2AFC statistic #2 [ORD]",            "two_afc_2",                          "AS",  "",    ""    \
+		"Upholt S coefficient",                                         "upholt_s",                           "TS",  "CTS", ""    \
+		"Van der Maarel coefficient",                                   "van_der_maarel",                     "TS",  "CTS", ""    \
+		van_rijsbergen_label,                               "van_rijsbergen",                     "AS",  "",    ""    \
+		"Variance dissimilarity measure", 							"variance_dissimilarity", 			  "CTS", "", 	""	  \
+		"Warrens coefficient",                                          "warrens",                            "CTS", "",    ""    \
 		weighted_kappa_label,                               "weighted_kappa",                     "TS",  "",    ""    \
-		"Woodcock",                                         "woodcock",                           "CTS", "",    ""    \
-		"Yao-Liu one-way support",                          "yao_liu_one_way_support",            "AS",  "CTS", "TS"  \
-		"Yao-Liu two-way support",                          "yao_liu_two_way_support",            "TS",  "CTS", ""    \
+		"Woodcock similarity coefficient",                                         "woodcock",                           "CTS", "",    ""    \
+		"Yao-Liu one-way support measure",                          "yao_liu_one_way_support",            "AS",  "CTS", "TS"  \
+		"Yao-Liu two-way support measure",                          "yao_liu_two_way_support",            "TS",  "CTS", ""    \
 		"Yao-Liu two-way support variation",                "yao_liu_two_way_support_v",          "CTS", "",    ""    \
-		"Yates chi^2",                                      "yates_chi2",                         "CTS", "",    ""    \
-		"Yule phi",                                         "yule_phi",                           "CTS", "",    ""    \
-		"Yule Q",                                           "yule_q",                             "CTS", "",    ""	  \
-		"Yule Y",                                           "yule_colligation",                   "CTS", "",    ""    \
-		"Zhang",                                            "zhang",                              "AS",  "CS",  "TS"  )
+		"Yates chi^2 statistics",                                      "yates_chi2",                         "CTS", "",    ""    \
+		"Yule phi correlation coefficient",                                         "yule_phi",                           "CTS", "",    ""    \
+		"Yule Q coefficient",                                           "yule_q",                             "CTS", "",    ""	  \
+		"Yule Y coefficient",                                           "yule_colligation",                   "CTS", "",    ""    \
+		"Zhang coefficient",                                            "zhang",                              "AS",  "CS",  "TS"  )
 	return(all_metrics)
 
 }
 
-function get_metrics_matrix(fbeta_r, goalpha_r, gobeta_r, ibaalpha_r, sokalw_r, gl_theta_r, baulieu_kappa_r, custom_kweights, t_alpha, t_beta, fleiss_holder_p_r, fleiss_lehmer_p_r) {
-	// I left the labels here as well just for convenience
-	b22_label = "Baulieu 22 (kappa=" + strofreal(round(baulieu_kappa_r, 0.0001)) + ")"
-	fbeta_label = "Fb score (beta=" + strofreal(fbeta_r) + ")"
-
-	gen_fleiss_holder_1_label = "Generalized Fleiss (Holder) 1 (p=" + strofreal(round(fleiss_holder_p_r, 0.0001)) + ")"
-	gen_fleiss_holder_2_label = "Generalized Fleiss (Holder) 2 (p=" + strofreal(round(fleiss_holder_p_r, 0.0001)) + ")"
-	gen_fleiss_holder_3_label = "Generalized Fleiss (Holder) 3 (p=" + strofreal(round(fleiss_holder_p_r, 0.0001)) + ")"
-	gen_fleiss_lehmer_1_label = "Generalized Fleiss (Lehmer) 1 (p=" + strofreal(round(fleiss_lehmer_p_r, 0.0001)) + ")"
-	gen_fleiss_lehmer_2_label = "Generalized Fleiss (Lehmer) 2 (p=" + strofreal(round(fleiss_lehmer_p_r, 0.0001)) + ")"
-	gen_fleiss_lehmer_3_label = "Generalized Fleiss (Lehmer) 3 (p=" + strofreal(round(fleiss_lehmer_p_r, 0.0001)) + ")"
-
-	gl_label = "Gower-Legendre S_theta (theta=" + strofreal(gl_theta_r) + ")"
-	gray_orlowska_label = "Gray-Orlowska (alpha=" + strofreal(goalpha_r) + ",beta=" + strofreal(gobeta_r) + ")"
-	iba_label = "IBA (alpha=" + strofreal(ibaalpha_r) + ")"
-	ss_6_label = "Sokal-Sneath 6 (w=" + strofreal(sokalw_r) + ")"
-	tversky_label = "Tversky (alpha=" + strofreal(t_alpha) + ",beta=" + strofreal(t_beta) + ")"
-	if (custom_kweights) {
-		weighted_kappa_label = "Weighted kappa (custom)"
-	}
-	else {
-		weighted_kappa_label = "Weighted kappa (Id weights)"
-	}
-
-	all_metrics = chunk_1(fbeta_r, goalpha_r, gobeta_r, ibaalpha_r, sokalw_r, gl_theta_r, baulieu_kappa_r, custom_kweights, t_alpha, t_beta, fleiss_holder_p_r, fleiss_lehmer_p_r)
-	all_metrics = all_metrics \ chunk_2(fbeta_r, goalpha_r, gobeta_r, ibaalpha_r, sokalw_r, gl_theta_r, baulieu_kappa_r, custom_kweights, t_alpha, t_beta, fleiss_holder_p_r, fleiss_lehmer_p_r)
+function get_metrics_matrix(struct MetricInputs scalar inp) {
+	all_metrics = chunk_1(inp)
+	all_metrics = all_metrics \ chunk_2(inp)
 return(all_metrics)
 }
 
