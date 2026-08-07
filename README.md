@@ -1,2 +1,2 @@
 # catmetrics
-catmetrics: Computing over 270 measures of association and forecast evaluation for categorical data
+catmetrics: Computing over 300 measures of association and forecast evaluation for categorical data!
