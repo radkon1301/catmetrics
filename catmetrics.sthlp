@@ -2,10 +2,9 @@
 {* *! version 0.3.0  07Aug2026}{...}
 {title:Title}
 
-{pstd}{helpb catmetrics##catmetrics:catmetrics} {c -} computes 283 measures of association and correlation between two categorical
- variables, 6 proper scores for
- probabilistic forecasts, and 12 diagnostic measures of the accuracy of 
- probabilistic forecasts of such variables.{p_end}
+{pstd}{helpb catmetrics##catmetrics:catmetrics} {c -} computes 283 measures of association, correlation, similarity,
+agreement, and information between two categorical variables, 6 proper scores for probabilistic forecasts, 
+and 12 diagnostic measures of the accuracy of probabilistic forecasts of such variables.
 
 {title:Syntax}
 
@@ -66,7 +65,8 @@ By default, results are saved to the Catmetrics.xlsx file.
 {synopt :{opt metrics:(string)}}
 specifies the measures to display in the Results window. Measures can be selected in any order
 using their indices
-(see the list of available measures in {help catmetrics##MetricReferenceTable:Metric Reference Table} below).
+(see the list of available measures in the {help catmetrics##MetricReferenceTable:Metric Reference Table} and
+the list of available probabilistic scores in the {help catmetrics##ProbScoreTable:Probabilistic Score Table} below).
 {p_end}
 
 {synopt :}
@@ -319,12 +319,12 @@ Strictly proper scoring rules for probabilistic forecasts:
 {synoptset 5 tabbed}{...}
 {synopthdr:Token}
 {synoptline}
-{synopt:{opt P1}}Brier score {p_end}
-{synopt:{opt P2}}Logarithmic score {p_end}
-{synopt:{opt P3}}Power score {p_end}
-{synopt:{opt P4}}Pseudospherical score {p_end}
-{synopt:{opt P5}}Ranked probability score {p_end}
-{synopt:{opt P6}}Spherical score {p_end}
+{synopt:{opt P1}}Brier score (aliases: half-Brier score, mean squared (probability) error, probability score, quadratic score) [M]{p_end}
+{synopt:{opt P2}}Logarithmic score (aliases: cross-entropy loss, ignorance score, log loss, negative log likelihood / predictive density, surprisal) [M]{p_end}
+{synopt:{opt P3}}Power score (with a user-defined parameter {it:β} > 1) (aliases: generalized quadratic score) [M]{p_end}
+{synopt:{opt P4}}Pseudospherical score (with a user-defined parameter {it:β} > 1) (aliases: generalized spherical score) [M]{p_end}
+{synopt:{opt P5}}Ranked probability score (aliases: Epstein ranked score) [O]{p_end}
+{synopt:{opt P6}}Spherical score [M]{p_end}
 {synoptline}
 
 {pstd}
@@ -334,18 +334,20 @@ Diagnostic measures for probabilistic forecasts:
 {synoptset 5 tabbed}{...}
 {synopthdr:Token}
 {synoptline}
-{synopt:{opt P7}}Accuracy rate{p_end}
-{synopt:{opt P8}}Average precision (AP){p_end}
-{synopt:{opt P9}}Expected calibration error (ECE){p_end}
-{synopt:{opt P10}}Gain at k{p_end}
-{synopt:{opt P11}}Lift at k{p_end}
-{synopt:{opt P12}}Macro-average mean probability rate (MAPR){p_end}
-{synopt:{opt P13}}Maximum calibration error (MCE){p_end}
-{synopt:{opt P14}}Mean probability rate (MPR){p_end}
-{synopt:{opt P15}}Normalized area under cumulative accuracy profile (CAP){p_end}
-{synopt:{opt P16}}Normalized area under receiver operating characteristic (ROC) curve{p_end}
-{synopt:{opt P17}}Two-alternative forced choice (2AFC) score #1{p_end}
-{synopt:{opt P18}}Two-alternative forced choice (2AFC) score #2 [ORD]{p_end}
+{synopt:{opt P7}}Accuracy rate (aliases: correct classification / success rate, fraction / percent / proportion correct, modal / top-1 accuracy,
+zero-one reward / utility; complement: error rate, misclassification / top-1 error, proportion misclassified, zero-one loss / score) [M]{p_end}
+{synopt:{opt P8}}Average precision (AP) (aliases: non-interpolated area under the precision-recall curve, AUPRC, AUC-PR, PR-AUC) [B]{p_end}
+{synopt:{opt P9}}Expected calibration error (ECE) (with user-defined parameter {it:q} > 0 and {it:m} in {2, 3, ...}) [B]{p_end}
+{synopt:{opt P10}}Gain at {it:k} (with a user-defined parameter 0 < {it:k} < 1) (aliases: capture rate, (cumulative) gain, gain@{it:k}, top-{it:k} recall) [B]{p_end}
+{synopt:{opt P11}}Lift at {it:k} (with a user-defined parameter 0 < {it:k} < 1) (aliases: (cumulative) lift, lift@{it:k}) [B]{p_end}
+{synopt:{opt P12}}Macro average mean probability rate (MAPR) (aliases: macro soft accuracy) [M]{p_end}
+{synopt:{opt P13}}Maximum calibration error (MCE) (with a user-defined parameter {it:q} > 0 an {it:m} in {2, 3, ...}) [B]{p_end}
+{synopt:{opt P14}}Mean probability rate (MPR) (aliases: mean linear score, mean true class probability, soft accuracy; the complement: mean absolute error) [M]{p_end}
+{synopt:{opt P15}}Normalized area under cumulative accuracy profile (CAP) (aliases: accuracy ratio, AUCAP, normalized area under cumulative gains/lift curve (AUCG, AUGC), Gini index) [B]{p_end}
+{synopt:{opt P16}}Normalized area under receiver operating characteristic (ROC) curve (aliases: AUC, AUROC, concordance {it:c} statistics,
+normalized Wilcoxon-Mann-Whitney {it:U} statistic, ROC area, ROC AUC) [B]{p_end}
+{synopt:{opt P17}}Two-alternative forced choice (2AFC) score #1 (aliases: generalized discrimination score) [M]{p_end}
+{synopt:{opt P18}}Two-alternative forced choice (2AFC) score #2 [O]{p_end}
 {synoptline}
 
 {marker MetricReferenceTable}
@@ -662,7 +664,7 @@ to Czekanowski if {it:w} = 2, to Sørensen if {it:w} = 4 and to Anderberg if {it
 {synopt:{opt 278}}Yao-Liu two-way support variation [B]{p_end}
 {synopt:{opt 279}}Yates {it:χ}² statistics [B]{p_end}
 {synopt:{opt 280}}Yule {it:φ} correlation coefficient (aliases: generalized Fleiss correlation coefficient (geometric),
-Matthews correlation {it:MCC} coefficient, Pearson product-moment correlation coefficient {it:φ}, {it:r}φ, tetrachoric correlation, Yule correlation) [B]{p_end}
+Matthews correlation {it:MCC} coefficient, Pearson product-moment correlation coefficient {it:φ}, {it:r}ᵩ, tetrachoric correlation, Yule correlation) [B]{p_end}
 {synopt:{opt 281}}Yule {it:Q} coefficient (aliases: Goodman-Kruskal {it:γ} coefficient, odds ratio skill score, Yule association) [B]{p_end}
 {synopt:{opt 282}}Yule {it:Y} coefficient (aliases: Yule colligation, Yule {it:σ}) [B]{p_end}
 {synopt:{opt 283}}Zhang coefficient [B]{p_end}
