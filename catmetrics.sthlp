@@ -12,31 +12,31 @@
 {marker nop}{...}
 {pstd}The command has four syntax forms:{p_end}
 
-{pstd}{cmd:catmetrics} {it:indepvar} {depvar} {bind:[{cmd:,} {it:options}]}{p_end}
+{pstd}{cmd:catmetrics} {it:var1} {it:var2} {bind:[{cmd:,} {it:options}]}{p_end}
 
-{p 4 7}where {it:indepvar} and {depvar} are two categorical variables with the same
+{p 4 7}where {it:var1} and {it:var2} are two categorical variables with the same
 number of observed categories. In asymmetric applications,
-{it:indepvar} precedes depvar chronologically or causally. 
-In forecasting applications, {it:indepvar}
-represents the actual outcome and {depvar} represents the predicted outcome.
-For binary {it:indepvar} and {depvar}, the positive category must be coded
+{it:var1} precedes {it:var2} chronologically or causally. 
+In forecasting applications, {it:var1}
+represents the actual outcome and {it:var2} represents the predicted outcome.
+For binary {it:var1} and {it:var2}, the positive category must be coded
 using the smallest numeric value.{p_end}
 
-{pstd}{cmd:catmetrics} {it:indepvar} {bind:[{cmd:,} probs(varlist) {it:options}]}{p_end}
+{pstd}{cmd:catmetrics} {it:var1} {bind:[{cmd:,} probs(varlist) {it:options}]}{p_end}
 
-{p 4 7}where {it:indepvar} contains the realized values of a categorical variable, and probs(varlist) supplies the predicted probabilities for each category.
+{p 4 7}where {it:var1} contains the realized values of a categorical variable, and probs(varlist) supplies the predicted probabilities for each category.
 The probabilities should be listed in ascending category order.
 The number of supplied probability variables must equal the number of distinct observed categories.
-If {it:indepvar} is binary, the positive category must be coded using the smallest
+If {it:var1} is binary, the positive category must be coded using the smallest
 numeric value.
 {p_end}
 
-{pstd}{cmd:catmetrics} {it:indepvar} {bind:[{cmd:,} predict {it:options}]}{p_end}
+{pstd}{cmd:catmetrics} {it:var1} {bind:[{cmd:,} predict {it:options}]}{p_end}
 
-{p 4 7}where {it:indepvar} again contains the realized outcomes, and predicted probabilities are obtained
+{p 4 7}where {it:var1} again contains the realized outcomes, and predicted probabilities are obtained
 from the most recently estimated Stata model (such as {bf:logistic}, {bf:logit}, {bf:probit}, {bf:oprobit},
 {bf:cmclogit}, {bf:mlogit}, {bf:mprobit}, {bf:ziologit}, {bf:zioprobit}) using Stata's post-estimation command {bf:predict}.
-If {it:indepvar} is binary, the positive category is assumed to be coded using the smallest numeric value.
+If {it:var1} is binary, the positive category is assumed to be coded using the smallest numeric value.
 {p_end}
 
 {pstd}{cmd:catmetrics} {bind:[{cmd:,} mat(string) {it:options}]}{p_end}
@@ -174,14 +174,14 @@ Tversky index. By default, beta = 1/3.
 
 {title:Examples}
 
-{pstd}Compute the catmetrics command by including the true values as the independent variable and predicted values as the dependent variable.{p_end}
+{pstd}Compute the catmetrics command by including the true values as {it:var1} and predicted values as {it:var2}.{p_end}
        {bf:. catmetrics y y_pred}
 
-{pstd}Compute the catmetrics command by including the true values as independent variable while specifying the probabilities in the options.
+{pstd}Compute the catmetrics command by including the true values as {it:var1} while specifying the probabilities in the options.
 In this example, y takes on values in three categories; hence p1, p2, and p3 are necessary.{p_end}
-       {bf:. catmetrics y, probs(p1 p2 p3)}
+       {bf:. catmetrics y, probs(P1 P2 P3)}
 
-{pstd}Compute the catmetrics command by including the true values as independent variable while using the Stata {cmd:predict} command to compute the probabilities.
+{pstd}Compute the catmetrics command by including the true values as {it:var1} while using the Stata {cmd:predict} command to compute the probabilities.
 It is required that variable names p1, p2, up to pK are not already defined within Stata.{p_end}
        {bf:. catmetrics y, pred}
 
@@ -192,8 +192,8 @@ Also display class-specific measures if the data is binary.{p_end}
 {pstd}Compute the catmetrics command for the specified contingency table, not saving the results to an .xlsx book and printing metrics 1, 123, and 5.{p_end}
        {bf:. catmetrics, mat(contingency_table) noexcel metrics(1 123 5)}
 	   
-{pstd}Compute the catmetrics command with different beta values for the Power, Pseudospherical, and Fbeta score.{p_end}
-       {bf:. catmetrics y, probs(p1 p2 p3) power(2.5) pseudospherical(2.5) fbeta(2.5)}
+{pstd}Compute the catmetrics command with different beta values for the Power and Pseudospherical scores.{p_end}
+       {bf:. catmetrics y, probs(P3 P4) power(2.5) pseudo(2.5)}
 	   
 {pstd}Compute the catmetrics command with different parameter values for the Gray-Orlowska interestingness weighting dependency, index of balanced accuracy, and weighted kappa metrics.{p_end}
        {bf:. catmetrics y y_pred, goalpha(1.5) gobeta(0.5) ibaalpha(0.75) kweights(kappa_matrix)}
