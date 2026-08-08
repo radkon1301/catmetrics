@@ -353,295 +353,316 @@ Diagnostic measures for probabilistic forecasts:
 
 {pstd}
 For the option {opt metrics:(string)}, the numeric indices should be used.
-The table below lists all 283 available metrics with their corresponding index numbers.
+The table below lists all 283 available metrics with their corresponding index numbers. 
+Measures suitable only for binary data (K = 2) are marked [B], measures suitable for multicategory data (K ≥ 2) are marked [M],
+and measures suitable only for ordinal data (K ≥ 2) are marked [O].
 {p_end}
 
 {synoptset 5 tabbed}{...}
 {synopthdr:Number}
 {synoptline}
-{synopt:{opt 1}}Accuracy{p_end}
-{synopt:{opt 2}}Added value{p_end}
-{synopt:{opt 3}}Adjusted noise-to-signal ratio{p_end}
-{synopt:{opt 4}}Alroy coefficient{p_end}
-{synopt:{opt 5}}Anderberg coefficient{p_end}
-{synopt:{opt 6}}Anderberg D{p_end}
-{synopt:{opt 7}}Appleman index{p_end}
-{synopt:{opt 8}}Atkinson similarity{p_end}
-{synopt:{opt 9}}Balanced accuracy{p_end}
-{synopt:{opt 10}}Balanced error rate{p_end}
-{synopt:{opt 11}}Baroni-Urbani-Buser #1{p_end}
-{synopt:{opt 12}}Baroni-Urbani-Buser #2{p_end}
-{synopt:{opt 13}}Base rate{p_end}
-{synopt:{opt 14}}Batagelj-Bren distance Q_0{p_end}
-{synopt:{opt 15}}Baulieu dissimilarity #13{p_end}
-{synopt:{opt 16}}Baulieu dissimilarity #22 (kappa=2.7183){p_end}
-{synopt:{opt 17}}Baulieu dissimilarity #23{p_end}
-{synopt:{opt 18}}Baulieu dissimilarity #24{p_end}
-{synopt:{opt 19}}Baulieu dissimilarity #25{p_end}
-{synopt:{opt 20}}Baulieu dissimilarity #27{p_end}
-{synopt:{opt 21}}Baulieu dissimilarity #28{p_end}
-{synopt:{opt 22}}Baulieu dissimilarity #29{p_end}
-{synopt:{opt 23}}Baulieu dissimilarity #30{p_end}
-{synopt:{opt 24}}Baulieu dissimilarity #31{p_end}
-{synopt:{opt 25}}Baulieu dissimilarity #32{p_end}
-{synopt:{opt 26}}Baulieu dissimilarity #33{p_end}
-{synopt:{opt 27}}Benini coefficient #1{p_end}
-{synopt:{opt 28}}Benini coefficient #2{p_end}
-{synopt:{opt 29}}Benini coefficient #3{p_end}
-{synopt:{opt 30}}Benini coefficient #4{p_end}
-{synopt:{opt 31}}Bennet S coefficient{p_end}
-{synopt:{opt 32}}Berger-Parker index{p_end}
-{synopt:{opt 33}}Bias index{p_end}
-{synopt:{opt 34}}Blaheta-Johnson unigram subtuples{p_end}
-{synopt:{opt 35}}Braun-Blanquet similarity index{p_end}
-{synopt:{opt 36}}Bray-Curtis dissimilarity index{p_end}
-{synopt:{opt 37}}Brin conviction coefficient{p_end}
-{synopt:{opt 38}}Causal confidence{p_end}
-{synopt:{opt 39}}Causal confirmed confidence{p_end}
-{synopt:{opt 40}}Causal confirm{p_end}
-{synopt:{opt 41}}Chord distance metric{p_end}
-{synopt:{opt 42}}Clayton skill score{p_end}
-{synopt:{opt 43}}Clement reliability coefficient{p_end}
-{synopt:{opt 44}}Cohen kappa coefficient{p_end}
-{synopt:{opt 45}}Cole C_5 correlation coefficient{p_end}
-{synopt:{opt 46}}Collective strength index{p_end}
-{synopt:{opt 47}}Consonni-Todeschini index #1{p_end}
-{synopt:{opt 48}}Consonni-Todeschini index #2{p_end}
-{synopt:{opt 49}}Consonni-Todeschini index #3{p_end}
-{synopt:{opt 50}}Consonni-Todeschini index #4{p_end}
-{synopt:{opt 51}}Consonni-Todeschini index #5{p_end}
-{synopt:{opt 52}}Cramer concordance coefficient{p_end}
-{synopt:{opt 53}}Cressie-Read power divergence (lambda=.6667){p_end}
-{synopt:{opt 54}}Czekanowski index{p_end}
-{synopt:{opt 55}}Dennis z-score{p_end}
-{synopt:{opt 56}}Dependency measure{p_end}
-{synopt:{opt 57}}Descriptive confirm{p_end}
-{synopt:{opt 58}}Digby correlation coefficient{p_end}
-{synopt:{opt 59}}Discriminant power{p_end}
-{synopt:{opt 60}}Discrimination d' distance{p_end}
-{synopt:{opt 61}}Dominance index{p_end}
-{synopt:{opt 62}}Donaldson bias index{p_end}
-{synopt:{opt 63}}Doolittle association ratio{p_end}
-{synopt:{opt 64}}Doolittle raw accuracy{p_end}
-{synopt:{opt 65}}Driver-Kroeber similarity index{p_end}
-{synopt:{opt 66}}Error rate{p_end}
-{synopt:{opt 67}}Example and counterexample{p_end}
-{synopt:{opt 68}}Extremal dependence index{p_end}
-{synopt:{opt 69}}Extreme dependency index{p_end}
-{synopt:{opt 70}}Eyraud index{p_end}
-{synopt:{opt 71}}Fager-McGowan index #1{p_end}
-{synopt:{opt 72}}Fager-McGowan index #2{p_end}
-{synopt:{opt 73}}Faith similarity index{p_end}
-{synopt:{opt 74}}False alarm ratio{p_end}
-{synopt:{opt 75}}False negative rate{p_end}
-{synopt:{opt 76}}False omission rate{p_end}
-{synopt:{opt 77}}False positive rate{p_end}
-{synopt:{opt 78}}Fbeta-score (beta=1.5){p_end}
-{synopt:{opt 79}}Fisher exact statistic{p_end}
-{synopt:{opt 80}}Fleiss-Levin-Paik agreement{p_end}
-{synopt:{opt 81}}Forbes coefficient #1{p_end}
-{synopt:{opt 82}}Forbes coefficient #2{p_end}
-{synopt:{opt 83}}Fossum index{p_end}
-{synopt:{opt 84}}Freeman-Tukey F^2 statistic{p_end}
-{synopt:{opt 85}}Freeman-Tukey F^2 statistic (asymptotic){p_end}
-{synopt:{opt 86}}F-score adjusted{p_end}
-{synopt:{opt 87}}Galton agreement coefficient{p_end}
-{synopt:{opt 88}}Ganascia coefficient{p_end}
-{synopt:{opt 89}}Gener. Fleiss coefficient (arithmetic) #2{p_end}
-{synopt:{opt 90}}Gener. Fleiss coefficient (contraharmonic) #1{p_end}
-{synopt:{opt 91}}Gener. Fleiss coefficient (contraharmonic) #2{p_end}
-{synopt:{opt 92}}Gener. Fleiss coefficient (contraharmonic) #3{p_end}
-{synopt:{opt 93}}Gener. Fleiss coefficient (harmonic) #1{p_end}
-{synopt:{opt 94}}Gener. Fleiss coefficient (harmonic) #2{p_end}
-{synopt:{opt 95}}Gener. Fleiss coefficient (harmonic) #3{p_end}
-{synopt:{opt 96}}Gener. Fleiss coefficient (Heronian) #1{p_end}
-{synopt:{opt 97}}Gener. Fleiss coefficient (Heronian) #2{p_end}
-{synopt:{opt 98}}Gener. Fleiss coefficient (Heronian) #3{p_end}
-{synopt:{opt 99}}Gener. Fleiss coefficient (Holder) #1 (p=.5){p_end}
-{synopt:{opt 100}}Gener. Fleiss coefficient (Holder) #2 (p=.5){p_end}
-{synopt:{opt 101}}Gener. Fleiss coefficient (Holder) #3 (p=.5){p_end}
-{synopt:{opt 102}}Gener. Fleiss coefficient (identric) #1{p_end}
-{synopt:{opt 103}}Gener. Fleiss coefficient (identric) #2{p_end}
-{synopt:{opt 104}}Gener. Fleiss coefficient (identric) #3{p_end}
-{synopt:{opt 105}}Gener. Fleiss coefficient (Lehmer) #1 (p=1.5){p_end}
-{synopt:{opt 106}}Gener. Fleiss coefficient (Lehmer) #2 (p=1.5){p_end}
-{synopt:{opt 107}}Gener. Fleiss coefficient (Lehmer) #3 (p=1.5){p_end}
-{synopt:{opt 108}}Gener. Fleiss coefficient (logarithmic) #1{p_end}
-{synopt:{opt 109}}Gener. Fleiss coefficient (logarithmic) #2{p_end}
-{synopt:{opt 110}}Gener. Fleiss coefficient (logarithmic) #3{p_end}
-{synopt:{opt 111}}Gener. Fleiss coefficient (quadratic) #1{p_end}
-{synopt:{opt 112}}Gener. Fleiss coefficient (quadratic) #2{p_end}
-{synopt:{opt 113}}Gener. Fleiss coefficient (quadratic) #3{p_end}
-{synopt:{opt 114}}Gener. Fleiss coefficient (Seiffert) #1{p_end}
-{synopt:{opt 115}}Gener. Fleiss coefficient (Seiffert) #2{p_end}
-{synopt:{opt 116}}Gener. Fleiss coefficient (Seiffert) #3{p_end}
-{synopt:{opt 117}}Gener. index of balanced accuracy (alpha=.5,M=125){p_end}
-{synopt:{opt 118}}Gerrity skill score [ORD]{p_end}
-{synopt:{opt 119}}Gilbert index{p_end}
-{synopt:{opt 120}}Gilbert skill score{p_end}
-{synopt:{opt 121}}Gilbert-Wells index{p_end}
-{synopt:{opt 122}}Gini coefficient #1{p_end}
-{synopt:{opt 123}}Gini coefficient #2{p_end}
-{synopt:{opt 124}}Gini impurity index{p_end}
-{synopt:{opt 125}}G-mean{p_end}
-{synopt:{opt 126}}G-mean adjusted{p_end}
-{synopt:{opt 127}}Goodall index{p_end}
-{synopt:{opt 128}}Goodman concomitance coefficient{p_end}
-{synopt:{opt 129}}Goodman-Kruskal coefficient #1{p_end}
-{synopt:{opt 130}}Goodman-Kruskal coefficient #2{p_end}
-{synopt:{opt 131}}Goodman-Kruskal gamma coefficient [ORD]{p_end}
-{synopt:{opt 132}}Goodman-Kruskal lambda coefficient{p_end}
-{synopt:{opt 133}}Goodman-Kruskal lambda_r coefficient{p_end}
-{synopt:{opt 134}}Goodman-Kruskal tau coefficient{p_end}
-{synopt:{opt 135}}Goodman-Kruskal weighted lambda{p_end}
-{synopt:{opt 136}}Goodman unweighted association{p_end}
-{synopt:{opt 137}}Goodman weighted association{p_end}
-{synopt:{opt 138}}Gorodkin Rk coefficient{p_end}
-{synopt:{opt 139}}Gower-Legendre Stheta index (theta=1.5){p_end}
-{synopt:{opt 140}}Gray-Orlowska index (alpha=2,beta=2){p_end}
-{synopt:{opt 141}}Grier B' bias index{p_end}
-{synopt:{opt 142}}Guttman coefficient{p_end}
-{synopt:{opt 143}}Hamann coefficient{p_end}
-{synopt:{opt 144}}Harris-Lahey index{p_end}
-{synopt:{opt 145}}Hawkins-Dotson coefficient{p_end}
-{synopt:{opt 146}}Heidke skill score{p_end}
-{synopt:{opt 147}}Hellinger distance{p_end}
-{synopt:{opt 148}}Hit rate{p_end}
-{synopt:{opt 149}}Hoffding coefficient #1{p_end}
-{synopt:{opt 150}}Hoffding coefficient #2{p_end}
-{synopt:{opt 151}}Hubert-Arabie adjusted Rand index{p_end}
-{synopt:{opt 152}}Index of dissimilarity{p_end}
-{synopt:{opt 153}}Information quality ratio{p_end}
-{synopt:{opt 154}}J-measure{p_end}
-{synopt:{opt 155}}Johnson{p_end}
-{synopt:{opt 156}}Kendall tau-a coefficient [ORD]{p_end}
-{synopt:{opt 157}}Kendall tau-b coefficient [ORD]{p_end}
-{synopt:{opt 158}}Kent-Foster #1 coefficient{p_end}
-{synopt:{opt 159}}Kent-Foster #2 coefficient{p_end}
-{synopt:{opt 160}}Kitamura-Matsumoto index{p_end}
-{synopt:{opt 161}}Klosgen measure{p_end}
-{synopt:{opt 162}}Koppen index [ORD]{p_end}
-{synopt:{opt 163}}Krippendorff alpha coefficient{p_end}
-{synopt:{opt 164}}Kuder-Richardson coefficient{p_end}
-{synopt:{opt 165}}Kuhns coefficient #1{p_end}
-{synopt:{opt 166}}Kuhns coefficient #2{p_end}
-{synopt:{opt 167}}Kulczynski index #1{p_end}
-{synopt:{opt 168}}Kulczynski index #2{p_end}
-{synopt:{opt 169}}Lakshmanamurti Lambda coefficient{p_end}
-{synopt:{opt 170}}Laplace correction{p_end}
-{synopt:{opt 171}}Least contradiction index{p_end}
-{synopt:{opt 172}}Lerman implication index{p_end}
-{synopt:{opt 173}}Leverage{p_end}
-{synopt:{opt 174}}Likelihood ratio G^2 statistic{p_end}
-{synopt:{opt 175}}Log Forbes measure{p_end}
-{synopt:{opt 176}}Log frequency biased index{p_end}
-{synopt:{opt 177}}Log odds ratio amended statistic{p_end}
-{synopt:{opt 178}}Log odds ratio statistic{p_end}
-{synopt:{opt 179}}Mak rho coefficient{p_end}
-{synopt:{opt 180}}Mantel-Haenszel statistic [ORD]{p_end}
-{synopt:{opt 181}}Maron-Kuhns coefficient{p_end}
-{synopt:{opt 182}}Maxwell B coefficient{p_end}
-{synopt:{opt 183}}Maxwell-Pilliner coefficient{p_end}
-{synopt:{opt 184}}McConnaughey coefficient{p_end}
-{synopt:{opt 185}}Merton correct prediction CP index{p_end}
-{synopt:{opt 186}}Michael index{p_end}
-{synopt:{opt 187}}Modified likelihood ratio statistics{p_end}
-{synopt:{opt 188}}Mountford index{p_end}
-{synopt:{opt 189}}Mueller-Schuessler IQV index{p_end}
-{synopt:{opt 190}}Mutual dependency{p_end}
-{synopt:{opt 191}}Mutual information statistic{p_end}
-{synopt:{opt 192}}Negative likelihood ratio statistic{p_end}
-{synopt:{opt 193}}Negative predicted value{p_end}
-{synopt:{opt 194}}Neyman modified chi^2 statistic{p_end}
-{synopt:{opt 195}}Normalized Google distance{p_end}
-{synopt:{opt 196}}Odds ratio{p_end}
-{synopt:{opt 197}}Odds ratio amended{p_end}
-{synopt:{opt 198}}Optimized precision{p_end}
-{synopt:{opt 199}}P4-score{p_end}
-{synopt:{opt 200}}Pattern difference{p_end}
-{synopt:{opt 201}}Pearson chi^2 statistic{p_end}
-{synopt:{opt 202}}Pearson contingency C coefficient{p_end}
-{synopt:{opt 203}}Pearson-Heron coefficient{p_end}
-{synopt:{opt 204}}Pearson phi coefficient{p_end}
-{synopt:{opt 205}}Peirce skill score{p_end}
-{synopt:{opt 206}}Pietra statistic{p_end}
-{synopt:{opt 207}}Poisson-Stirling index{p_end}
-{synopt:{opt 208}}Pollack-Norman A' sensitivity statistic{p_end}
-{synopt:{opt 209}}Pollaczek-Geiringer coefficient [ORD]{p_end}
-{synopt:{opt 210}}Positive likelihood ratio{p_end}
-{synopt:{opt 211}}Positive matching coefficient{p_end}
-{synopt:{opt 212}}Precision{p_end}
-{synopt:{opt 213}}Predicted negative rate{p_end}
-{synopt:{opt 214}}Predicted positive rate{p_end}
-{synopt:{opt 215}}Prevalence threshold index{p_end}
-{synopt:{opt 216}}Putative causal dependency index{p_end}
-{synopt:{opt 217}}Relative risk ratio{p_end}
-{synopt:{opt 218}}Relative Quetelet index{p_end}
-{synopt:{opt 219}}Renkonen similarity index{p_end}
-{synopt:{opt 220}}Replacement comp. (Jaccard){p_end}
-{synopt:{opt 221}}Replacement comp. (Sorensen){p_end}
-{synopt:{opt 222}}Replacement comp. (Braun-Blanquet){p_end}
-{synopt:{opt 223}}Richness difference (Jaccard){p_end}
-{synopt:{opt 224}}Richness difference (Sorensen){p_end}
-{synopt:{opt 225}}Richness difference (Braun-Blanquet){p_end}
-{synopt:{opt 226}}Rogers-Tanimoto coefficient{p_end}
-{synopt:{opt 227}}Rogot-Goldberg index{p_end}
-{synopt:{opt 228}}Root mean square difference{p_end}
-{synopt:{opt 229}}Rousseau index{p_end}
-{synopt:{opt 230}}Roux index #1{p_end}
-{synopt:{opt 231}}Roux index #2{p_end}
-{synopt:{opt 232}}Russell-Rao coefficient{p_end}
-{synopt:{opt 233}}Schrank index{p_end}
-{synopt:{opt 234}}Scott pi coefficient{p_end}
-{synopt:{opt 235}}Sebag-Schoenauer index{p_end}
-{synopt:{opt 236}}Shape difference{p_end}
-{synopt:{opt 237}}Simple matching coefficient{p_end}
-{synopt:{opt 238}}Size difference{p_end}
-{synopt:{opt 239}}Sokal-Sneath similarity coefficient #1{p_end}
-{synopt:{opt 240}}Sokal-Sneath similarity coefficient #2{p_end}
-{synopt:{opt 241}}Sokal-Sneath similarity coefficient #3{p_end}
-{synopt:{opt 242}}Sokal-Sneath similarity coefficient #4{p_end}
-{synopt:{opt 243}}Sokal-Sneath similarity coefficient #5{p_end}
-{synopt:{opt 244}}Sokal-Sneath similarity coefficient #6 (w=3){p_end}
-{synopt:{opt 245}}Somers d statistics [ORD]{p_end}
-{synopt:{opt 246}}Sorensen similarity coefficient{p_end}
-{synopt:{opt 247}}Specificity{p_end}
-{synopt:{opt 248}}Standard deviation agreement index{p_end}
-{synopt:{opt 249}}Steffensen psi^2 coefficient{p_end}
-{synopt:{opt 250}}Steffensen omega coefficient{p_end}
-{synopt:{opt 251}}Stiles coefficient{p_end}
-{synopt:{opt 252}}Stuart tau-c correlation [ORD]{p_end}
-{synopt:{opt 253}}Success index{p_end}
-{synopt:{opt 254}}Szymkiewicz-Simpson coefficient{p_end}
-{synopt:{opt 255}}Tarantula metric{p_end}
-{synopt:{opt 256}}Theil uncertainty coefficient U{p_end}
-{synopt:{opt 257}}Theil symmetric coefficient U{p_end}
-{synopt:{opt 258}}Tonnies coefficient [ORD]{p_end}
-{synopt:{opt 259}}Tschuprow T bias-corrected coefficient{p_end}
-{synopt:{opt 260}}Tschuprow T coefficient{p_end}
-{synopt:{opt 261}}t-score{p_end}
-{synopt:{opt 262}}Tulloss R cost index{p_end}
-{synopt:{opt 263}}Tulloss S cost index{p_end}
-{synopt:{opt 264}}Tulloss T combined costs index{p_end}
-{synopt:{opt 265}}Tulloss U cost index{p_end}
-{synopt:{opt 266}}Tversky index (alpha=.3333,beta=.3333){p_end}
-{synopt:{opt 267}}2AFC statistic #1{p_end}
-{synopt:{opt 268}}2AFC statistic #2 [ORD]{p_end}
-{synopt:{opt 269}}Upholt S coefficient{p_end}
-{synopt:{opt 270}}Van der Maarel coefficient{p_end}
-{synopt:{opt 271}}Van Rijsbergen E-measure (alpha=.5){p_end}
-{synopt:{opt 272}}Variance dissimilarity measure{p_end}
-{synopt:{opt 273}}Warrens coefficient{p_end}
-{synopt:{opt 274}}Weighted kappa coefficient (default weights){p_end}
-{synopt:{opt 275}}Woodcock similarity coefficient{p_end}
-{synopt:{opt 276}}Yao-Liu one-way support measure{p_end}
-{synopt:{opt 277}}Yao-Liu two-way support measure{p_end}
-{synopt:{opt 278}}Yao-Liu two-way support variation{p_end}
-{synopt:{opt 279}}Yates chi^2 statistics{p_end}
-{synopt:{opt 280}}Yule phi correlation coefficient{p_end}
-{synopt:{opt 281}}Yule Q coefficient{p_end}
-{synopt:{opt 282}}Yule Y coefficient{p_end}
-{synopt:{opt 283}}Zhang coefficient{p_end}
+{synopt:{opt 1}}Accuracy (aliases: (crude / observed/ raw) agreement, causal support, classification accuracy/rate, count {it:R}², fraction/percent/proportion correct, hit score, Holsti coefficient of agreement {it:C.R.}, Kendall coefficient, Osgood coefficient, Rand index, ratio test discriminant, simple matching coefficient, Sokal-Michener coefficient, success rate) [M]{p_end}
+{synopt:{opt 2}}Added value (aliases: absolute Quetelet index, centered confidence, change of support, gain, Pavillon index) [B]{p_end}
+{synopt:{opt 3}}Adjusted noise-to-signal ratio [B]{p_end}
+{synopt:{opt 4}}Alroy coefficient (aliases: corrected Forbes {it:F} coefficient) [B]{p_end}
+{synopt:{opt 5}}Anderberg coefficient [B]{p_end}
+{synopt:{opt 6}}Anderberg {it:D} similarity coefficient [B]{p_end}
+{synopt:{opt 7}}Appleman index [B]{p_end}
+{synopt:{opt 8}}Atkinson similarity [M]{p_end}
+{synopt:{opt 9}}Balanced accuracy (aliases: balanced classification rate; complement: balanced error rate) [M]{p_end}
+{synopt:{opt 10}}Balanced error rate (aliases: balanced classification error / rate, half total error rate, complement: balanced accuracy) [M]{p_end}
+{synopt:{opt 11}}Baroni-Urbani-Buser coefficient #1 [B]{p_end}
+{synopt:{opt 12}}Baroni-Urbani-Buser coefficient #2 [B]{p_end}
+{synopt:{opt 13}}Base rate (aliases: event probability, sample climate, (true) prevalence) [B]{p_end}
+{synopt:{opt 14}}Batagelj-Bren distance {it:Q}₀ (aliases: inverse (diagnostic) odds ratio) [B]{p_end}
+{synopt:{opt 15}}Baulieu dissimilarity coefficient #13 [B]{p_end}
+{synopt:{opt 16}}Baulieu dissimilarity coefficient #22 (with a user-supplied parameter {it:κ}, a positive irrational number) [B]{p_end}
+{synopt:{opt 17}}Baulieu dissimilarity coefficient #23 [B]{p_end}
+{synopt:{opt 18}}Baulieu dissimilarity coefficient #24 [B]{p_end}
+{synopt:{opt 19}}Baulieu dissimilarity coefficient #25 [B]{p_end}
+{synopt:{opt 20}}Baulieu dissimilarity coefficient #27 [B]{p_end}
+{synopt:{opt 21}}Baulieu dissimilarity coefficient #28 [B]{p_end}
+{synopt:{opt 22}}Baulieu dissimilarity coefficient #29 [B]{p_end}
+{synopt:{opt 23}}Baulieu dissimilarity coefficient #30 [B]{p_end}
+{synopt:{opt 24}}Baulieu dissimilarity coefficient #31 [B]{p_end}
+{synopt:{opt 25}}Baulieu dissimilarity coefficient #32 [B]{p_end}
+{synopt:{opt 26}}Baulieu dissimilarity coefficient #33 [B]{p_end}
+{synopt:{opt 27}}Benini {it:φ}/{it:φ}max correlation coefficient #1 [B]{p_end}
+{synopt:{opt 28}}Benini {it:φ}/{it:φ}max correlation coefficient #2 (aliases: Benini attraction/repulsion, Gini coefficient, bound-adjusted Cohen {it:κ}) [M]{p_end}
+{synopt:{opt 29}}Benini correlation coefficient #3 (aliases: Benini attraction, Cole coefficient, Köppen index, certainty factor) [B]{p_end}
+{synopt:{opt 30}}Benini correlation coefficient #4 (aliases: Benini attraction, Cole coefficient) [B]{p_end}
+{synopt:{opt 31}}Bennet {it:S} coefficient (aliases: Brennan-Prediger {it:κ}n coefficient, Guilford {it:G} coefficient, Janson-Vegelius {it:C} coefficient,
+Maxwell random error {it:RE}, Perreault-Leigh {it:I}ᵣ index, reliability coefficient) [M]{p_end}
+{synopt:{opt 32}}Berger-Parker dominance index (aliases: proportional dominance) [M]{p_end}
+{synopt:{opt 33}}Bias index (aliases: assessment / forecast / frequency / response bias) [B]{p_end}
+{synopt:{opt 34}}Blaheta-Johnson unigram subtuples measure [B]{p_end}
+{synopt:{opt 35}}Braun-Blanquet similarity index [B]{p_end}
+{synopt:{opt 36}}Bray-Curtis dissimilarity index (aliases: Whittaker index) [M]{p_end}
+{synopt:{opt 37}}Brin conviction coefficient [B]{p_end}
+{synopt:{opt 38}}Causal confidence [B]{p_end}
+{synopt:{opt 39}}Causal confirmed confidence [B]{p_end}
+{synopt:{opt 40}}Causal confirm [B]{p_end}
+{synopt:{opt 41}}Chord distance metric [B]{p_end}
+{synopt:{opt 42}}Clayton skill score (aliases: {it:Δp}, index of separation, markedness) [M]{p_end}
+{synopt:{opt 43}}Clement reliability coefficient [B]{p_end}
+{synopt:{opt 44}}Cohen {it:κ} coefficient (aliases: Cohen agreement, Cohen kappa, inter-rater agreement, inter-rater reliability, kappa coefficient) [M]{p_end}
+{synopt:{opt 45}}Cole {it:C}₅ correlation coefficient [B]{p_end}
+{synopt:{opt 46}}Collective strength index [B]{p_end}
+{synopt:{opt 47}}Consonni-Todeschini similarity index #1 [B]{p_end}
+{synopt:{opt 48}}Consonni-Todeschini similarity index #2 [B]{p_end}
+{synopt:{opt 49}}Consonni-Todeschini similarity index #3 [B]{p_end}
+{synopt:{opt 50}}Consonni-Todeschini similarity index #4 [B]{p_end}
+{synopt:{opt 51}}Consonni-Todeschini similarity index #5 [B]{p_end}
+{synopt:{opt 52}}Cramér concordance coefficient [M]{p_end}
+{synopt:{opt 53}}Cressie-Read power divergence statistic (with a user-supplied parameter {it:λ}; identical to: Neyman {it:χ}² test statistic if {it:λ} = -2;
+Freeman-Tukey ({it:F}² or {it:T}²) test statistic if {it:λ} = -1/2; likelihood ratio {it:G}² test statistic if {it:λ} → 0;
+modified likelihood ratio test statistics if {it:λ} = -1, Pearson {it:χ}² if {it:λ} = 1; optimal Cressie-Read power divergence statistic if {it:λ} = 2/3) [M]{p_end}
+{synopt:{opt 54}}Czekanowski index (aliases: Burt coefficient, Dice coefficient, Gleason index, {it:F}₁-score, harmonic mean of precision and recall,
+Nei-Li index, positive specific agreement, proportion of specific agreement, Sørensen index, Sørensen-Dice coefficient,
+Tversky index (special case if {it:α} = {it:β} = 1/2), Upholt {it:F} coefficient, Zijdenbos index; complement: Bray-Curtis index, Lance-Williams coefficient) [B]{p_end}
+{synopt:{opt 55}}Dennis {it:z}-score (aliases: {it:z}-score) [B]{p_end}
+{synopt:{opt 56}}Dependency measure [B]{p_end}
+{synopt:{opt 57}}Descriptive confirm [B]{p_end}
+{synopt:{opt 58}}Digby correlation coefficient [B]{p_end}
+{synopt:{opt 59}}Discriminant power [B]{p_end}
+{synopt:{opt 60}}Discrimination {it:d'} distance (aliases: signal detection sensitivity {it:d'}) [B]{p_end}
+{synopt:{opt 61}}Dominance index [B]{p_end}
+{synopt:{opt 62}}Donaldson bias index [B]{p_end}
+{synopt:{opt 63}}Doolittle association ratio (aliases: Cramér coefficient, inertia, mean square contingency {it:φ}²) [M]{p_end}
+{synopt:{opt 64}}Doolittle raw accuracy (aliases: correlation ratio, Doolittle {it:H}ᵤ, Michelet index, Sorgenfrei coefficient, unbiased hit rate {it:H}ᵤ,
+Wagner index; complement: Baulieu coefficient #12) [B]{p_end}
+{synopt:{opt 65}}Driver-Kroeber similarity index (aliases: Fowlkes-Mallows index, {it:G}-measure, geometric mean of recall and precision, cosine similarity,
+Ochiai coefficient, Otsuka coefficient) [B]{p_end}
+{synopt:{opt 66}}Error rate (aliases: (mis)classification error, misclassification rate, zero-one loss; the complement: accuracy) [M]{p_end}
+{synopt:{opt 67}}Example and counterexample rate [B]{p_end}
+{synopt:{opt 68}}Extremal dependence index [B]{p_end}
+{synopt:{opt 69}}Extreme dependency index [B]{p_end}
+{synopt:{opt 70}}Eyraud index [B]{p_end}
+{synopt:{opt 71}}Fager-McGowan similarity index #1 (aliases: corrected Ochiai/cosine similarity) [B]{p_end}
+{synopt:{opt 72}}Fager-McGowan similarity index #2 [B]{p_end}
+{synopt:{opt 73}}Faith similarity index [B]{p_end}
+{synopt:{opt 74}}False alarm ratio (aliases: false discovery rate; complement: precision) [B]{p_end}
+{synopt:{opt 75}}False negative rate (aliases: miss rate; complement: hit rate) [B]{p_end}
+{synopt:{opt 76}}False omission rate (aliases: detection failure ratio, miss ratio; complement: negative predicted value) [B]{p_end}
+{synopt:{opt 77}}False positive rate (aliases: fall-out, false alarm rate, probability of false detection; type II error rate; complement: specificity) [B]{p_end}
+{synopt:{opt 78}}{it:F}ᵦ-score (aliases: weighted harmonic mean of the precision and hit rate; complement: van Rijsbergen effectiveness {it:E} measure) [B]{p_end}
+{synopt:{opt 79}}Fisher exact statistic (aliases: Freeman-Halton statistic) [M]{p_end}
+{synopt:{opt 80}}Fleiss-Levin-Paik agreement index (aliases: negative-class Dice, harmonic mean of negative predictive value and specificity,
+negative-class {it:F}₁-score, negative percent agreement, negative (specific) agreement, proportion of negative agreement, negative-class Sørensen) [B]{p_end}
+{synopt:{opt 81}}Forbes coefficient #1 (aliases: Forbes {it:F} coefficient, independence, interest, Kocher-Wong measure, lift) [B]{p_end}
+{synopt:{opt 82}}Forbes coefficient #2 (aliases: Benini correlation/repulsion, Loevinger {it:H} coefficient, relative improvement over chance (RIOC)) [B]{p_end}
+{synopt:{opt 83}}Fossum index [B]{p_end}
+{synopt:{opt 84}}Freeman-Tukey ({it:F}² or {it:T}²) statistic [M]{p_end}
+{synopt:{opt 85}}Freeman-Tukey test ({it:F}² or {it:T}²) statistic (asymptotic approximation) (identical to Cressie-Read power divergence statistic if {it:λ} = -1/2) [M]{p_end}
+{synopt:{opt 86}}{it:F}-score adjusted [B]{p_end}
+{synopt:{opt 87}}Galton agreement coefficient (aliases: Cole {it:C}₇ coefficient, conditional kappa, Light coefficient) [B]{p_end}
+{synopt:{opt 88}}Ganascia coefficient (aliases: confirmed confidence) [B]{p_end}
+{synopt:{opt 89}}Generalized Fleiss correlation coefficient (arithmetic) #2 [B]{p_end}
+{synopt:{opt 90}}Generalized Fleiss correlation coefficient (contraharmonic) #1 [B]{p_end}
+{synopt:{opt 91}}Generalized Fleiss correlation coefficient (contraharmonic) #2 [B]{p_end}
+{synopt:{opt 92}}Generalized Fleiss correlation coefficient (contraharmonic) #3 [B]{p_end}
+{synopt:{opt 93}}Generalized Fleiss correlation coefficient (harmonic) #1 (identical to original Fleiss coefficient) [B]{p_end}
+{synopt:{opt 94}}Generalized Fleiss correlation coefficient (harmonic) #2 [B]{p_end}
+{synopt:{opt 95}}Generalized Fleiss correlation coefficient (harmonic) #3 [B]{p_end}
+{synopt:{opt 96}}Generalized Fleiss correlation coefficient (Heronian) #1 [B]{p_end}
+{synopt:{opt 97}}Generalized Fleiss correlation coefficient (Heronian) #2 [B]{p_end}
+{synopt:{opt 98}}Generalized Fleiss correlation coefficient (Heronian) #3 [B]{p_end}
+{synopt:{opt 99}}Generalized Fleiss correlation coefficient (Hölder) #1 (with a user-defined parameter {it:p} ≠ 0) [B]{p_end}
+{synopt:{opt 100}}Generalized Fleiss correlation coefficient (Hölder) #2 (with a user-defined parameter {it:p} ≠ 0) [B]{p_end}
+{synopt:{opt 101}}Generalized Fleiss correlation coefficient (Hölder) #3 (with a user-defined parameter {it:p} ≠ 0) [B]{p_end}
+{synopt:{opt 102}}Generalized Fleiss correlation coefficient (identric) #1 [B]{p_end}
+{synopt:{opt 103}}Generalized Fleiss correlation coefficient (identric) #2 [B]{p_end}
+{synopt:{opt 104}}Generalized Fleiss correlation coefficient (identric) #3 [B]{p_end}
+{synopt:{opt 105}}Generalized Fleiss correlation coefficient (Lehmer) #1 (with a user-defined parameter {it:p}) [B]{p_end}
+{synopt:{opt 106}}Generalized Fleiss correlation coefficient (Lehmer) #2 (with a user-defined parameter {it:p}) [B]{p_end}
+{synopt:{opt 107}}Generalized Fleiss correlation coefficient (Lehmer) #3 (with a user-defined parameter {it:p}) [B]{p_end}
+{synopt:{opt 108}}Generalized Fleiss correlation coefficient (logarithmic) #1 [B]{p_end}
+{synopt:{opt 109}}Generalized Fleiss correlation coefficient (logarithmic) #2 [B]{p_end}
+{synopt:{opt 110}}Generalized Fleiss correlation coefficient (logarithmic) #3 [B]{p_end}
+{synopt:{opt 111}}Generalized Fleiss correlation coefficient (quadratic) #1 [B]{p_end}
+{synopt:{opt 112}}Generalized Fleiss correlation coefficient (quadratic) #2 [B]{p_end}
+{synopt:{opt 113}}Generalized Fleiss correlation coefficient (quadratic) #3 [B]{p_end}
+{synopt:{opt 114}}Generalized Fleiss correlation coefficient (Seiffert) #1 [B]{p_end}
+{synopt:{opt 115}}Generalized Fleiss correlation coefficient (Seiffert) #2 [B]{p_end}
+{synopt:{opt 116}}Generalized Fleiss correlation coefficient (Seiffert) #3 [B]{p_end}
+{synopt:{opt 117}}Generalized index of balanced accuracy (IBA) (with user-defined parameters 0 < {it:α} < 1 and {it:M} - an index of any binary metric) [B]{p_end}
+{synopt:{opt 118}}Gerrity skill score (aliases: special case of Gandin-Murphy equitable skill score) [O]{p_end}
+{synopt:{opt 119}}Gilbert index (aliases: critical success index, Driver-Kroeber coefficient, intersection over union, Jaccard index,
+Jaccardized Czekanowski index, mutual support, ratio of verification, Ružička index, Sneath index, Tanimoto coefficient, threat score, Tversky index) [B]{p_end}
+{synopt:{opt 120}}Gilbert skill score (aliases: equitable threat score, ratio of success) [B]{p_end}
+{synopt:{opt 121}}Gilbert-Wells index [B]{p_end}
+{synopt:{opt 122}}Gini coefficient #1 [B]{p_end}
+{synopt:{opt 123}}Gini coefficient #2 [B]{p_end}
+{synopt:{opt 124}}Gini impurity index (aliases: Gibbs M1 index, Gini-Simpson index, index of differentiation, Simpson diversity index) [M]{p_end}
+{synopt:{opt 125}}{it:G}-mean (aliases: geometric mean of sensitivity and specificity) [B]{p_end}
+{synopt:{opt 126}}{it:G}-mean adjusted (aliases: adjusted geometric mean) [B]{p_end}
+{synopt:{opt 127}}Goodall index (aliases: Austin-Colwell index) [M]{p_end}
+{synopt:{opt 128}}Goodman concomitance coefficient [B]{p_end}
+{synopt:{opt 129}}Goodman-Kruskal coefficient #1 [B]{p_end}
+{synopt:{opt 130}}Goodman-Kruskal coefficient #2 [B]{p_end}
+{synopt:{opt 131}}Goodman-Kruskal {it:γ} coefficient [O]{p_end}
+{synopt:{opt 132}}Goodman-Kruskal {it:λ} coefficient (aliases: Guttman {it:λ} coefficient) [M]{p_end}
+{synopt:{opt 133}}Goodman-Kruskal {it:λ}ᵣ coefficient (aliases: adjusted count {it:R}², Brennan-Prediger {it:κ}b coefficient) [M]{p_end}
+{synopt:{opt 134}}Goodman-Kruskal {it:τ} coefficient [M]{p_end}
+{synopt:{opt 135}}Goodman-Kruskal weighted {it:λ} coefficient [M]{p_end}
+{synopt:{opt 136}}Goodman unweighted association index [B]{p_end}
+{synopt:{opt 137}}Goodman weighted association index [B]{p_end}
+{synopt:{opt 138}}Gorodkin {it:R}K correlation coefficient (aliases: generalized Matthews correlation, generalized Yule {it:φ}, Gini index of homophyly) [M]{p_end}
+{synopt:{opt 139}}Gower-Legendre {it:S}θ index (with user-defined parameter {it:θ} > 0) (aliases: parameterized overall agreement;
+identical to Sokal-Sneath #1 when {it:θ} = 1/2, to accuracy when {it:θ} = 1, to Rogers-Tanimoto when {it:θ} = 2) [M]{p_end}
+{synopt:{opt 140}}Gray-Orlowska interestingness index (with user-defined parameters {it:α} > 0 and {it:β} > 0) [B]{p_end}
+{synopt:{opt 141}}Grier {it:B}' bias index [B]{p_end}
+{synopt:{opt 142}}Guttman coefficient [B]{p_end}
+{synopt:{opt 143}}Hamann coefficient (aliases: Hubert {it:Γ} statistic) [M]{p_end}
+{synopt:{opt 144}}Harris-Lahey index [B]{p_end}
+{synopt:{opt 145}}Hawkins-Dotson coefficient [B]{p_end}
+{synopt:{opt 146}}Heidke skill score (aliases: binary Cohen {it:κ}, Doolittle index, generalized Fleiss correlation coefficient (arithmetic) #3, {it:κ} index of agreement) [B]{p_end}
+{synopt:{opt 147}}Hellinger distance [B]{p_end}
+{synopt:{opt 148}}Hit rate (aliases: completeness, Dice coefficient, fraction correct, power, prefigurance, probability of detection,
+producer's accuracy, positive percent agreement, recall, sensitivity, true positive rate) [B]{p_end}
+{synopt:{opt 149}}Höffding coefficient #1 [M]{p_end}
+{synopt:{opt 150}}Höffding coefficient #2 [M]{p_end}
+{synopt:{opt 151}}Hubert-Arabie adjusted Rand index [M]{p_end}
+{synopt:{opt 152}}Index of dissimilarity (aliases: analyzing method patterns to locate errors (AMPLE), Duncan dissimilarity / segregation index) [B]{p_end}
+{synopt:{opt 153}}Information quality ratio [B]{p_end}
+{synopt:{opt 154}}{it:J}-measure (aliases: information content) [B]{p_end}
+{synopt:{opt 155}}Johnson (aliases: sum of confidences) [B]{p_end}
+{synopt:{opt 156}}Kendall {it:τ}a correlation coefficient [O]{p_end}
+{synopt:{opt 157}}Kendall {it:τ}b correlation coefficient with an adjustment for ties [O]{p_end}
+{synopt:{opt 158}}Kent-Foster #1 coefficient [B]{p_end}
+{synopt:{opt 159}}Kent-Foster #2 coefficient [B]{p_end}
+{synopt:{opt 160}}Kitamura-Matsumoto index (aliases: modified Dice coefficient) [B]{p_end}
+{synopt:{opt 161}}Klösgen measure [B]{p_end}
+{synopt:{opt 162}}Köppen index [O]{p_end}
+{synopt:{opt 163}}Krippendorff {it:α} coefficient [M]{p_end}
+{synopt:{opt 164}}Kuder-Richardson coefficient [B]{p_end}
+{synopt:{opt 165}}Kuhns coefficient #1 (aliases: arithmetic mean overlap) [B]{p_end}
+{synopt:{opt 166}}Kuhns coefficient #2 (aliases: proportion of overlap above independence) [B]{p_end}
+{synopt:{opt 167}}Kulczyński index #1 [B]{p_end}
+{synopt:{opt 168}}Kulczyński index #2 (aliases: Driver-Kroeber coefficient) [B]{p_end}
+{synopt:{opt 169}}Lakshmanamurti {it:Λ} coefficient [B]{p_end}
+{synopt:{opt 170}}Laplace correction [B]{p_end}
+{synopt:{opt 171}}Least contradiction index [B]{p_end}
+{synopt:{opt 172}}Lerman implication index [B]{p_end}
+{synopt:{opt 173}}Leverage (aliases: Baulieu coefficient #20, Piatetsky-Shapiro index, weighted relative accuracy) [B]{p_end}
+{synopt:{opt 174}}Likelihood ratio {it:G}² statistic (aliases: (log) likelihood ratio {it:χ}² statistic, special case of Cressie-Read power divergence statistic if {it:λ} → 0) [M]{p_end}
+{synopt:{opt 175}}Log Forbes measure (aliases: Gilbert-Wells index, log pointwise mutual information) [B]{p_end}
+{synopt:{opt 176}}Log frequency biased index [B]{p_end}
+{synopt:{opt 177}}Log odds ratio amended statistic [B]{p_end}
+{synopt:{opt 178}}Log odds ratio statistic [B]{p_end}
+{synopt:{opt 179}}Mak {it:ρ} coefficient [B]{p_end}
+{synopt:{opt 180}}Mantel-Haenszel statistic (aliases: linear-by-linear association statistic, nonzero correlation statistic) [O]{p_end}
+{synopt:{opt 181}}Maron-Kuhns coefficient [B]{p_end}
+{synopt:{opt 182}}Maxwell {it:B} coefficient (aliases: Maxwell adjusted random error {it:RE}, maximum-corrected Bennett {it:S} coefficient, bounded uniform agreement index) [M]{p_end}
+{synopt:{opt 183}}Maxwell-Pilliner coefficient (aliases: generalized Fleiss coefficient (arithmetic) #1) [B]{p_end}
+{synopt:{opt 184}}McConnaughey coefficient [B]{p_end}
+{synopt:{opt 185}}Merton correct prediction {it:CP} index [B]{p_end}
+{synopt:{opt 186}}Michael index [B]{p_end}
+{synopt:{opt 187}}Modified likelihood ratio statistics (aliases: minimum discrimination information (MDI) statistic, modified {it:G}² statistic,
+special case of Cressie-Read power divergence statistic if {it:λ} = -1) [M]{p_end}
+{synopt:{opt 188}}Mountford index [B]{p_end}
+{synopt:{opt 189}}Mueller-Schuessler index of qualitative variation (aliases: Gibbs's M2 index, index of qualitative variation (IQV)) [M]{p_end}
+{synopt:{opt 190}}Mutual dependency [B]{p_end}
+{synopt:{opt 191}}Mutual information statistic (aliases: information gain) [M]{p_end}
+{synopt:{opt 192}}Negative likelihood ratio {it:LR}- statistic (aliases: logical necessity) [B]{p_end}
+{synopt:{opt 193}}Negative predicted value (aliases: inverse precision, true negative accuracy; complement: false omission rate) [B]{p_end}
+{synopt:{opt 194}}Neyman modified {it:χ}² statistic (aliases: special case of Cressie-Read power divergence statistic if {it:λ} = -2) [M]{p_end}
+{synopt:{opt 195}}Normalized Google distance (NGD) metric [B]{p_end}
+{synopt:{opt 196}}Odds ratio (aliases: diagnostic odds ratio, cross-product ratio) [B]{p_end}
+{synopt:{opt 197}}Odds ratio amended [B]{p_end}
+{synopt:{opt 198}}Optimized precision [B]{p_end}
+{synopt:{opt 199}}{it:P}₄-score [B]{p_end}
+{synopt:{opt 200}}Pattern difference [B]{p_end}
+{synopt:{opt 201}}Pearson {it:χ}² statistic (aliases: Cramér statistic, special case of power divergence statistic if {it:λ} = 1) [M]{p_end}
+{synopt:{opt 202}}Pearson contingency {it:C} coefficient [M]{p_end}
+{synopt:{opt 203}}Pearson-Heron correlation coefficient (aliases: tetrachoric correlation coefficient) [B]{p_end}
+{synopt:{opt 204}}Pearson {it:φ} coefficient (aliases: mean square contingency coefficient) [M]{p_end}
+{synopt:{opt 205}}Peirce skill score (aliases: (bookmaker) informedness, corrected hit probability, {it:Δp}, Gandin-Murphy equitable skill score,
+Hanssen-Kuipers discriminant, Kuipers skill score, true skill score, true skill statistic, Woodworth index, Youden {it:J} statistic) [M]{p_end}
+{synopt:{opt 206}}Pietra statistic (aliases: Schutz coefficient) [M]{p_end}
+{synopt:{opt 207}}Poisson-Stirling index [B]{p_end}
+{synopt:{opt 208}}Pollack-Norman {it:A}' sensitivity statistic [B]{p_end}
+{synopt:{opt 209}}Pollaczek-Geiringer correlation coefficient [O]{p_end}
+{synopt:{opt 210}}Positive likelihood ratio {it:LR}+ statistic (aliases: Bayes factor, logical sufficiency) [B]{p_end}
+{synopt:{opt 211}}Positive matching coefficient [B]{p_end}
+{synopt:{opt 212}}Precision (aliases: absolute support, certainty factor, confidence, correct alarm ratio, Dice coefficient, frequency of hits,
+positive predictive value, post agreement, strength, success ratio; complement: predicted negative rate) [B]{p_end}
+{synopt:{opt 213}}Predicted negative rate (aliases: apparent non-prevalence, negative call rate, predicted negative proportion, rejection rate / ratio,
+test-negative proportion, complement: predicted positive rate) [B]{p_end}
+{synopt:{opt 214}}Predicted positive rate (aliases: apparent/predicted prevalence, applicability, coverage, generality,
+probability of a forecast of occurrence, (positive) forecast rate/frequency, selection ratio; complement: predicted negative rate) [B]{p_end}
+{synopt:{opt 215}}Prevalence threshold index [B]{p_end}
+{synopt:{opt 216}}Putative causal dependency index [B]{p_end}
+{synopt:{opt 217}}Relative risk ratio (aliases: (adverse) impact ratio (AIR), risk ratio) [B]{p_end}
+{synopt:{opt 218}}Relative Quetelet index (aliases: centered lift, lift minus one, varying rates liaison (VRL)) [B]{p_end}
+{synopt:{opt 219}}Renkonen similarity index (aliases: percentage similarity index; complement: index of dissimilarity) [B]{p_end}
+{synopt:{opt 220}}Replacement component (Jaccard-based) (aliases: Ružička replacement index) [B]{p_end}
+{synopt:{opt 221}}Replacement component (Sørensen-based) [B]{p_end}
+{synopt:{opt 222}}Replacement component (Braun-Blanquet-based) (aliases: Savage replacement index) [B]{p_end}
+{synopt:{opt 223}}Richness difference (Jaccard-based) (aliases: Ružička abundance difference) [B]{p_end}
+{synopt:{opt 224}}Richness difference (Sørensen-based) (aliases: abundance difference) [B]{p_end}
+{synopt:{opt 225}}Richness difference (Braun-Blanquet based) (aliases: abundance difference) [B]{p_end}
+{synopt:{opt 226}}Rogers-Tanimoto coefficient [M]{p_end}
+{synopt:{opt 227}}Rogot-Goldberg index [B]{p_end}
+{synopt:{opt 228}}Root mean square difference (aliases: normalized Euclidean distance, Sokal distance) [B]{p_end}
+{synopt:{opt 229}}Rousseau index [B]{p_end}
+{synopt:{opt 230}}Roux index #1 [B]{p_end}
+{synopt:{opt 231}}Roux index #2 [B]{p_end}
+{synopt:{opt 232}}Russell-Rao coefficient (aliases: support) [B]{p_end}
+{synopt:{opt 233}}Schrank index [B]{p_end}
+{synopt:{opt 234}}Scott {it:π} coefficient (aliases: Scott index of inter-code agreement, the two-rater special case of Fleiss {it:κ}) [M]{p_end}
+{synopt:{opt 235}}Sebag-Schoenauer index [B]{p_end}
+{synopt:{opt 236}}Shape difference [B]{p_end}
+{synopt:{opt 237}}Simple matching coefficient [B]{p_end}
+{synopt:{opt 238}}Size difference (aliases: Baulieu coefficient #26, Penrose size difference) [B]{p_end}
+{synopt:{opt 239}}Sokal-Sneath similarity coefficient #1 (aliases: Anderberg coefficient) [M]{p_end}
+{synopt:{opt 240}}Sokal-Sneath similarity coefficient #2 (aliases: Anderberg coefficient) [M]{p_end}
+{synopt:{opt 241}}Sokal-Sneath similarity coefficient #3 (aliases: Anderberg coefficient, Rogot-Goldberg index) [M]{p_end}
+{synopt:{opt 242}}Sokal-Sneath similarity coefficient #4 (aliases: Gower coefficient, Ochiai coefficient) [B]{p_end}
+{synopt:{opt 243}}Sokal-Sneath similarity coefficient #5 (aliases: Anderberg coefficient) [B]{p_end}
+{synopt:{opt 244}}Sokal-Sneath similarity coefficient #6 (with a user-supplied parameter {it:w} > 0) (aliases: weighted Jaccard index;
+identical to Sokal-Sneath #5 if {it:w} = 1/2, to Gilbert score if {it:w} = 1, to Gower-Legendre {it:T}θ if {it:w} = 1/{it:θ},
+to Czekanowski if {it:w} = 2, to Sørensen if {it:w} = 4 and to Anderberg if {it:w} = 8) [B]{p_end}
+{synopt:{opt 245}}Somers {it:d} statistics [O]{p_end}
+{synopt:{opt 246}}Sørensen similarity coefficient [B]{p_end}
+{synopt:{opt 247}}Specificity (aliases: inverse recall, selectivity, true negative rate; complement: false positive rate) [B]{p_end}
+{synopt:{opt 248}}Standard deviation agreement (SDAI) index (aliases: Armitage-Blendis-Smyllie index) [B]{p_end}
+{synopt:{opt 249}}Steffensen {it:Ψ}² coefficient [M]{p_end}
+{synopt:{opt 250}}Steffensen {it:ω} coefficient [M]{p_end}
+{synopt:{opt 251}}Stiles coefficient [B]{p_end}
+{synopt:{opt 252}}Stuart {it:τ}c correlation coefficient (for ordinal variables; aliases: Kendall {it:τ}c coefficient, Kendall-Stuart {it:τ}c coefficient) [O]{p_end}
+{synopt:{opt 253}}Success index (aliases: Tarwid index) [B]{p_end}
+{synopt:{opt 254}}Szymkiewicz-Simpson similarity coefficient (aliases: confidence, overlap) [B]{p_end}
+{synopt:{opt 255}}Tarantula metric [B]{p_end}
+{synopt:{opt 256}}Theil uncertainty coefficient {it:U} (aliases: entropy, normalized mutual information (NMI) (directional), proficiency, (asymmetric) uncertainty coefficient) [M]{p_end}
+{synopt:{opt 257}}Theil symmetric uncertainty coefficient {it:U} (aliases: normalized mutual information (NMI) (symmetric), symmetric uncertainty (SU) coefficient) [M]{p_end}
+{synopt:{opt 258}}Tönnies coefficient [O]{p_end}
+{synopt:{opt 259}}Tschuprow {it:T} bias-corrected coefficient (aliases: Cramér {it:V} bias-corrected coefficient) [M]{p_end}
+{synopt:{opt 260}}Tschuprow {it:T} coefficient (aliases: Cramér {it:V} coefficient or {it:φ}c) [M]{p_end}
+{synopt:{opt 261}}{it:t}-score [B]{p_end}
+{synopt:{opt 262}}Tulloss {it:R} cost index [B]{p_end}
+{synopt:{opt 263}}Tulloss {it:S} cost index [B]{p_end}
+{synopt:{opt 264}}Tulloss {it:T} combined costs index (aliases: tripartite similarity {it:T} index) [B]{p_end}
+{synopt:{opt 265}}Tulloss {it:U} cost index [B]{p_end}
+{synopt:{opt 266}}Tversky index (with user-defined parameters {it:α} > 0 and {it:β} > 0; identical to Sokal-Sneath #6 if {it:α} = {it:β} = 1/{it:w}) [B]{p_end}
+{synopt:{opt 267}}Two-alternative forced choice 2{it:AFC} statistic #1 [M]{p_end}
+{synopt:{opt 268}}Two-alternative forced choice 2{it:AFC} statistic #2 [O]{p_end}
+{synopt:{opt 269}}Upholt {it:S} coefficient [B]{p_end}
+{synopt:{opt 270}}Van der Maarel coefficient [B]{p_end}
+{synopt:{opt 271}}Van Rijsbergen effectiveness {it:E}-measure (with user-defined parameter 0 ≤ {it:α} ≤ 1) (complement: {it:F}ᵦ-score) [B]{p_end}
+{synopt:{opt 272}}Variance dissimilarity measure [B]{p_end}
+{synopt:{opt 273}}Warrens coefficient (aliases: harmonic mean of precision, hit rate, negative predicted value and specificity) [B]{p_end}
+{synopt:{opt 274}}Weighted {it:κ} coefficient (with user-supplied parameters 0 ≤ {it:ω}ᵢⱼ ≤ 1 with all {it:ω}ᵢᵢ = 1 and all {it:ω}ᵢⱼ = {it:ω}ⱼᵢ)
+(aliases: weighted {it:κ}, weighted agreement, weighted Cohen kappa, identical to unweighted Cohen {it:κ} if {it:ω}ᵢⱼ = 0, {it:i} ≠ {it:j}) [M]{p_end}
+{synopt:{opt 275}}Woodcock similarity coefficient (complement: Baulieu dissimilarity coefficient #20) [B]{p_end}
+{synopt:{opt 276}}Yao-Liu one-way support measure [B]{p_end}
+{synopt:{opt 277}}Yao-Liu two-way support measure [B]{p_end}
+{synopt:{opt 278}}Yao-Liu two-way support variation [B]{p_end}
+{synopt:{opt 279}}Yates {it:χ}² statistics [B]{p_end}
+{synopt:{opt 280}}Yule {it:φ} correlation coefficient (aliases: generalized Fleiss correlation coefficient (geometric), Matthews correlation {it:MCC} coefficient, Pearson product-moment correlation coefficient {it:φ}, {it:r}φ, tetrachoric correlation, Yule correlation) [B]{p_end}
+{synopt:{opt 281}}Yule {it:Q} coefficient (aliases: Goodman-Kruskal {it:γ} coefficient, odds ratio skill score, Yule association) [B]{p_end}
+{synopt:{opt 282}}Yule {it:Y} coefficient (aliases: Yule colligation, Yule {it:σ}) [B]{p_end}
+{synopt:{opt 283}}Zhang coefficient [B]{p_end}
 {synoptline}
 
 
