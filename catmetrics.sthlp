@@ -361,7 +361,9 @@ and measures suitable only for ordinal data (K ≥ 2) are marked [O].
 {synoptset 5 tabbed}{...}
 {synopthdr:Number}
 {synoptline}
-{synopt:{opt 1}}Accuracy (aliases: (crude / observed/ raw) agreement, causal support, classification accuracy/rate, count {it:R}², fraction/percent/proportion correct, hit score, Holsti coefficient of agreement {it:C.R.}, Kendall coefficient, Osgood coefficient, Rand index, ratio test discriminant, simple matching coefficient, Sokal-Michener coefficient, success rate) [M]{p_end}
+{synopt:{opt 1}}Accuracy (aliases: (crude / observed/ raw) agreement, causal support, classification accuracy/rate, count {it:R}²,
+fraction/percent/proportion correct, hit score, Holsti coefficient of agreement {it:C.R.}, Kendall coefficient, Osgood coefficient,
+Rand index, ratio test discriminant, simple matching coefficient, Sokal-Michener coefficient, success rate) [M]{p_end}
 {synopt:{opt 2}}Added value (aliases: absolute Quetelet index, centered confidence, change of support, gain, Pavillon index) [B]{p_end}
 {synopt:{opt 3}}Adjusted noise-to-signal ratio [B]{p_end}
 {synopt:{opt 4}}Alroy coefficient (aliases: corrected Forbes {it:F} coefficient) [B]{p_end}
@@ -659,7 +661,8 @@ to Czekanowski if {it:w} = 2, to Sørensen if {it:w} = 4 and to Anderberg if {it
 {synopt:{opt 277}}Yao-Liu two-way support measure [B]{p_end}
 {synopt:{opt 278}}Yao-Liu two-way support variation [B]{p_end}
 {synopt:{opt 279}}Yates {it:χ}² statistics [B]{p_end}
-{synopt:{opt 280}}Yule {it:φ} correlation coefficient (aliases: generalized Fleiss correlation coefficient (geometric), Matthews correlation {it:MCC} coefficient, Pearson product-moment correlation coefficient {it:φ}, {it:r}φ, tetrachoric correlation, Yule correlation) [B]{p_end}
+{synopt:{opt 280}}Yule {it:φ} correlation coefficient (aliases: generalized Fleiss correlation coefficient (geometric),
+Matthews correlation {it:MCC} coefficient, Pearson product-moment correlation coefficient {it:φ}, {it:r}φ, tetrachoric correlation, Yule correlation) [B]{p_end}
 {synopt:{opt 281}}Yule {it:Q} coefficient (aliases: Goodman-Kruskal {it:γ} coefficient, odds ratio skill score, Yule association) [B]{p_end}
 {synopt:{opt 282}}Yule {it:Y} coefficient (aliases: Yule colligation, Yule {it:σ}) [B]{p_end}
 {synopt:{opt 283}}Zhang coefficient [B]{p_end}
