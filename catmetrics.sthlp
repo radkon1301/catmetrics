@@ -337,11 +337,11 @@ Diagnostic measures for probabilistic forecasts:
 {synopt:{opt P7}}Accuracy rate (aliases: correct classification / success rate, fraction / percent / proportion correct, modal / top-1 accuracy,
 zero-one reward / utility; complement: error rate, misclassification / top-1 error, proportion misclassified, zero-one loss / score) [M]{p_end}
 {synopt:{opt P8}}Average precision (AP) (aliases: non-interpolated area under the precision-recall curve, AUPRC, AUC-PR, PR-AUC) [B]{p_end}
-{synopt:{opt P9}}Expected calibration error (ECE) (with user-defined parameter {it:q} > 0 and {it:m} in {2, 3, ...}) [B]{p_end}
+{synopt:{opt P9}}Expected calibration error (ECE) (with user-defined parameters {it:q} > 0 and {it:m} in {2, 3, ...}) [B]{p_end}
 {synopt:{opt P10}}Gain at {it:k} (with a user-defined parameter 0 < {it:k} < 1) (aliases: capture rate, (cumulative) gain, gain@{it:k}, top-{it:k} recall) [B]{p_end}
 {synopt:{opt P11}}Lift at {it:k} (with a user-defined parameter 0 < {it:k} < 1) (aliases: (cumulative) lift, lift@{it:k}) [B]{p_end}
 {synopt:{opt P12}}Macro average mean probability rate (MAPR) (aliases: macro soft accuracy) [M]{p_end}
-{synopt:{opt P13}}Maximum calibration error (MCE) (with a user-defined parameter {it:q} > 0 an {it:m} in {2, 3, ...}) [B]{p_end}
+{synopt:{opt P13}}Maximum calibration error (MCE) (with user-defined parameters {it:q} > 0 and {it:m} in {2, 3, ...}) [B]{p_end}
 {synopt:{opt P14}}Mean probability rate (MPR) (aliases: mean linear score, mean true class probability, soft accuracy; the complement: mean absolute error) [M]{p_end}
 {synopt:{opt P15}}Normalized area under cumulative accuracy profile (CAP) (aliases: accuracy ratio, AUCAP, normalized area under cumulative gains/lift curve (AUCG, AUGC), Gini index) [B]{p_end}
 {synopt:{opt P16}}Normalized area under receiver operating characteristic (ROC) curve (aliases: AUC, AUROC, concordance {it:c} statistics,
