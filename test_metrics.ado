@@ -1,7 +1,6 @@
 version 18.5
 mata
 
-// KONRAD (27) v
 // struct that contains all inputs used across all metrics
 struct MetricInputs {
 	real matrix conf_mat, kweights_mat
@@ -9,7 +8,6 @@ struct MetricInputs {
 	real scalar n, n_kk, fbeta, goalpha, gobeta, ibaalpha, sokal_w, gl_theta, baulieu_kappa, t_alpha, t_beta, fleiss_holder_p, fleiss_lehmer_p, ealpha, ibam, ibam_type, crlambda, custom_kweights
 	pointer(function) scalar ibam_f
 }
-// KONRAD (27) ^
 
 //#1
 function accuracy(struct MetricInputs scalar inp, type) {

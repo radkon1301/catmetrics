@@ -8,7 +8,7 @@ clear all
 run test_metrics.ado
 run metric_ranges.ado
 run helpfunctest.ado
-run estimates.ado
+run cat_est.ado
 run catmetrics.ado
 
 capture log close

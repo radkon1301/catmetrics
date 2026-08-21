@@ -1,6 +1,6 @@
 version 18.5
 mata
-// XXX v entire file
+
 //#1
 function accuracy_R(n, K, type, struct MetricInputs scalar inp) {
     if (type == "CTS") {
